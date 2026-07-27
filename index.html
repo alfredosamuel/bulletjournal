@@ -956,29 +956,29 @@
   const XP_PER_TASK = 10;
   const MAX_LEVEL = 100;
 
-  // Un título cada 5 niveles (20 tramos hasta el nivel 100), cada vez
-  // más solemnes.
+  // Un título por nivel (100 en total), combinando razas fantásticas,
+  // armas y palabras de peso — escalando de lo terrenal a lo mítico.
   const LEVEL_TITLES = [
-    "Aprendiz",              // 1-5
-    "Constante",             // 6-10
-    "Disciplinado",          // 11-15
-    "Metódico",              // 16-20
-    "Estratega",             // 21-25
-    "Virtuoso",              // 26-30
-    "Maestro",               // 31-35
-    "Erudito",               // 36-40
-    "Visionario",            // 41-45
-    "Arquitecto de Hábitos", // 46-50
-    "Guardián del Tiempo",   // 51-55
-    "Artesano de Rutinas",   // 56-60
-    "Centinela",             // 61-65
-    "Sabio",                 // 66-70
-    "Maestro Ancestral",     // 71-75
-    "Titán de la Constancia",// 76-80
-    "Oráculo",               // 81-85
-    "Leyenda Viviente",      // 86-90
-    "Mítico",                // 91-95
-    "Leyenda Eterna"         // 96-100
+    "Aprendiz", "Novato Perseverante", "Escriba Diligente", "Discípulo del Hábito", "Portador de la Pluma",
+    "Escudero Disciplinado", "Centinela Constante", "Guardián del Cuaderno", "Soldado de la Rutina", "Caballero del Orden",
+    "Arquero de la Constancia", "Lancero Metódico", "Espadachín Resiliente", "Duelista del Tiempo", "Portador del Hacha",
+    "Maestro de la Daga", "Ballestero Implacable", "Alabardero de Hierro", "Maestro de Armas", "Capitán de la Disciplina",
+    "Comandante Metódico", "Estratega de Hierro", "Táctico Implacable", "General de la Rutina", "Warlord de Bronce",
+    "Bárbaro Indomable", "Berserker Constante", "Gladiador del Hábito", "Centurión de Acero", "Legionario Eterno",
+    "Elfo Silencioso", "Arquero Élfico", "Ranger de las Sombras", "Explorador Eterno", "Guardabosques Real",
+    "Cazador de Sombras", "Rastreador Implacable", "Centinela Élfico", "Capitán Élfico", "Señor de los Bosques",
+    "Mago Aprendiz", "Hechicero de Runas", "Nigromante del Tiempo", "Druida de Acero", "Chamán Ancestral",
+    "Alquimista de Rutinas", "Sabio Errante", "Erudito Arcano", "Maestro Arcano", "Archimago de la Constancia",
+    "Enano Forjador", "Herrero de Hábitos", "Forjador de Destinos", "Arquitecto de Hábitos", "Maestro Herrero",
+    "Señor de la Forja", "Portador del Martillo de Guerra", "Soberano Enano", "Rey de la Montaña", "Señor de las Minas",
+    "Dragón Novato", "Wyrmling de Bronce", "Dragón de Plata", "Dragón de Oro", "Dragón Ancestral",
+    "Señor Dracónico", "Emperador Dracónico", "Rey Dragón", "Dragón Primigenio", "Soberano de los Cielos",
+    "Titán de Piedra", "Titán de Hierro", "Coloso de Guerra", "Gigante de Hielo", "Gigante de Fuego",
+    "Señor de los Titanes", "Titán Primordial", "Coloso Ancestral", "Guardián de los Titanes", "Monarca de los Gigantes",
+    "Ángel Guardián", "Serafín de la Constancia", "Arcángel del Orden", "Custodio Celestial", "Fénix Renacido",
+    "Ave de Fuego Eterna", "Espíritu Celestial", "Señor de las Sombras Eternas", "Emperador de Hierro", "Soberano de Acero",
+    "Semidiós de la Constancia", "Avatar del Orden", "Guardián del Olimpo", "Señor del Tiempo", "Arquitecto del Destino",
+    "Oráculo Eterno", "Mítico Ancestral", "Leyenda Viviente", "Inmortal", "Leyenda Eterna"
   ];
 
   let xpState = { totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null };
@@ -1011,8 +1011,7 @@
     return { level, xpIntoLevel: remaining, xpForNext: levelThreshold(level), maxed: false };
   }
   function levelTitle(level){
-    const tier = Math.min(Math.floor((level - 1) / 5), LEVEL_TITLES.length - 1);
-    return LEVEL_TITLES[tier];
+    return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   }
   function renderXP(){
     const info = computeLevelInfo(xpState.totalXP);
