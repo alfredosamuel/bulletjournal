@@ -300,6 +300,62 @@
   }
   .hour-row.done .task-text{ color: var(--text-faint); text-decoration: line-through; }
 
+  /* ---------- XP / NIVEL ---------- */
+  .xp-footer{
+    flex-shrink:0;
+    padding: 12px 16px 14px 16px;
+    border-top: 1px solid var(--border-soft);
+    background: var(--panel-2);
+  }
+  .xp-level-row{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom: 7px;
+  }
+  .xp-level-badge{
+    font-family:'Fraunces', serif;
+    font-style: italic;
+    font-weight:600;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .xp-level-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    flex:1;
+  }
+  .xp-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    color: var(--text-faint);
+  }
+  .xp-bar-track{
+    height: 5px;
+    border-radius: 4px;
+    background: var(--slate);
+    border: 1px solid var(--border-soft);
+    overflow:hidden;
+  }
+  .xp-bar-fill{
+    height:100%;
+    width:0%;
+    background: linear-gradient(90deg, var(--accent), #e0c084);
+    border-radius: 4px;
+    transition: width .5s ease;
+  }
+  .xp-level-badge.level-up{
+    animation: levelUpPulse .7s ease;
+  }
+  @keyframes levelUpPulse{
+    0%{ text-shadow: 0 0 0 rgba(201,162,103,0); }
+    30%{ text-shadow: 0 0 10px rgba(201,162,103,0.9); }
+    100%{ text-shadow: 0 0 0 rgba(201,162,103,0); }
+  }
+
   /* ---------- BOARD COLUMN ---------- */
   #board-col{
     position:relative;
@@ -500,20 +556,26 @@
   .board-el.text-el{
     font-family:'Space Grotesk', sans-serif;
     font-weight: 500;
-    font-size: 17px;
+    font-size: 15px;
+    line-height: 1.45;
     color: var(--text);
-    min-width: 20px;
-    min-height: 1.4em;
-    padding: 3px 6px;
-    margin: -3px -6px;
-    border-radius: 6px;
-    border: 1px solid transparent;
+    min-width: 140px;
+    min-height: 1.6em;
+    padding: 9px 11px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(32,35,46,0.55);
+    backdrop-filter: blur(2px);
     cursor: text;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+    /* capa de composición propia: evita que quede "debiendo" un repintado
+       cuando el ancestro (#whiteboard-canvas) tiene su propio transform */
     transform: translateZ(0);
   }
   .board-el.text-el:focus{
-    border: 1px dashed var(--accent);
-    background: rgba(201,162,103,0.08);
+    border-color: var(--accent);
+    background: rgba(201,162,103,0.1);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.32);
   }
   .board-el.text-el:empty::before{
     content: attr(data-placeholder);
@@ -650,6 +712,16 @@
         <input type="text" id="startHourInput" value="10:00" maxlength="5" />
       </div>
       <div id="todo-list"></div>
+      <div class="xp-footer" id="xpFooter">
+        <div class="xp-level-row">
+          <span class="xp-level-badge" id="xpLevelBadge">Nv. 1</span>
+          <span class="xp-level-title" id="xpLevelTitle">Aprendiz</span>
+          <span class="xp-meta" id="xpMeta">0 / 80 XP</span>
+        </div>
+        <div class="xp-bar-track">
+          <div class="xp-bar-fill" id="xpBarFill"></div>
+        </div>
+      </div>
     </section>
 
     <section id="board-col">
@@ -839,6 +911,62 @@
   let redoStack = [];
   const MAX_UNDO = 60;
 
+  /* ============ XP / NIVEL ============ */
+  const XP_PER_TASK = 10;
+  const LEVEL_TITLES = ["Aprendiz","Constante","Disciplinado","Metódico","Estratega","Virtuoso","Maestro","Leyenda"];
+  let xpState = { totalXP: 0 };
+
+  async function loadXP(){
+    const raw = await storeGet("bj:xp");
+    xpState = raw ? JSON.parse(raw) : { totalXP: 0 };
+  }
+  function saveXP(){
+    scheduleSave("bj:xp", JSON.stringify(xpState));
+  }
+  function levelThreshold(level){
+    // XP necesaria para pasar de `level` a `level + 1` — crece un poco en cada nivel
+    return 80 + (level - 1) * 35;
+  }
+  function computeLevelInfo(totalXP){
+    let level = 1;
+    let remaining = Math.max(0, totalXP);
+    let needed = levelThreshold(level);
+    while(remaining >= needed){
+      remaining -= needed;
+      level++;
+      needed = levelThreshold(level);
+    }
+    return { level, xpIntoLevel: remaining, xpForNext: needed };
+  }
+  function levelTitle(level){
+    return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+  }
+  function renderXP(){
+    const info = computeLevelInfo(xpState.totalXP);
+    document.getElementById("xpLevelBadge").textContent = "Nv. " + info.level;
+    document.getElementById("xpLevelTitle").textContent = levelTitle(info.level);
+    document.getElementById("xpMeta").textContent = info.xpIntoLevel + " / " + info.xpForNext + " XP";
+    document.getElementById("xpBarFill").style.width =
+      Math.min(100, Math.round((info.xpIntoLevel / info.xpForNext) * 100)) + "%";
+  }
+  function addXP(amount){
+    const before = computeLevelInfo(xpState.totalXP).level;
+    xpState.totalXP = Math.max(0, xpState.totalXP + amount);
+    saveXP();
+    renderXP();
+    const after = computeLevelInfo(xpState.totalXP).level;
+    if(amount > 0 && after > before){
+      const badge = document.getElementById("xpLevelBadge");
+      badge.classList.remove("level-up");
+      void badge.offsetWidth; // reinicia la animación si se repite
+      badge.classList.add("level-up");
+    }
+  }
+  async function initXP(){
+    await loadXP();
+    renderXP();
+  }
+
   /* ============ DEFAULTS ============ */
   function defaultDay(){
     const tasks = [];
@@ -931,6 +1059,7 @@
         task.done = cb.checked;
         row.classList.toggle("done", cb.checked);
         saveDay();
+        addXP(cb.checked ? XP_PER_TASK : -XP_PER_TASK);
       });
       check.appendChild(cb);
 
@@ -1114,7 +1243,11 @@
       node.textContent = el.content;
       let preEditSnapshot = null;
       node.addEventListener("focus", () => { preEditSnapshot = snapshotWhiteboard(); });
-      node.addEventListener("input", () => { el.content = node.textContent; saveDay(); void node.offsetHeight;});
+      node.addEventListener("input", () => {
+        el.content = node.textContent;
+        saveDay();
+        void node.offsetHeight; // fuerza un repintado inmediato del recuadro
+      });
       node.addEventListener("blur", () => {
         const emptied = !node.textContent.trim();
         if(emptied){
@@ -1791,6 +1924,7 @@
   }
 
   refresh();
+  initXP();
 })();
 </script>
 </body>
