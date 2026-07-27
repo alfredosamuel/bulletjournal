@@ -495,7 +495,7 @@
   .mini-cal-nav button:hover{ border-color: var(--accent); color: var(--accent); }
   .mini-cal-grid{
     display:grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, 1fr),
     gap: 2px;
   }
   .mini-cal-dow{
@@ -845,7 +845,7 @@
     <label for="ghToken">Token de acceso personal</label>
     <input id="ghToken" type="password" placeholder="ghp_..." autocomplete="off" />
 
-    <p class="modal-note">El token necesita permiso de lectura/escritura sobre el repo. No se guarda: hay que ingresarlo cada vez que quieras sincronizar. Los campos de repositorio y ruta sí quedan recordados.</p>
+    <p class="modal-note">El token necesita permiso de lectura/escritura sobre el repo. Se guardará localmente para tu comodidad, por lo que no tendrás que volver a ingresarlo. Los campos de repositorio y ruta también quedan recordados.</p>
 
     <div id="ghStatus"></div>
 
@@ -1851,13 +1851,13 @@
 
   async function openGithubModal(){
     setGhStatus("", "");
-    ghTokenInput.value = "";
     try{
       const raw = await storeGet("bj:config:github");
       if(raw){
         const cfg = JSON.parse(raw);
         if(cfg.repo) ghRepoInput.value = cfg.repo;
         if(cfg.path) ghPathInput.value = cfg.path;
+        if(cfg.token) ghTokenInput.value = cfg.token; // <-- CARGA EL TOKEN GUARDADO
       }
     }catch(e){}
     ghModal.hidden = false;
@@ -1951,7 +1951,8 @@
 
     try{
       setGhStatus("Guardando configuración…", "busy");
-      await storeSet("bj:config:github", JSON.stringify({ repo, path }));
+      // <-- AÑADIDO EL TOKEN A LA CONFIGURACIÓN GUARDADA
+      await storeSet("bj:config:github", JSON.stringify({ repo, path, token }));
 
       setGhStatus("Reuniendo datos…", "busy");
       const data = await gatherAllData();
@@ -1986,7 +1987,7 @@
     }
   });
 
-  /* --- NUEVA FUNCIONALIDAD: IMPORTAR DESDE GITHUB --- */
+  /* --- IMPORTAR DESDE GITHUB --- */
   document.getElementById("ghLoad").addEventListener("click", async () => {
     const repo = ghRepoInput.value.trim();
     const path = ghPathInput.value.trim() || "bullet-journal/data.json";
@@ -2008,14 +2009,12 @@
       }
 
       const data = await res.json();
-      // La API de GitHub devuelve el contenido en Base64 con saltos de línea
       const b64Content = data.content.replace(/\n/g, "");
       const jsonStr = base64ToUtf8(b64Content);
       const parsedData = JSON.parse(jsonStr);
 
       setGhStatus("Importando datos localmente…", "busy");
 
-      // Guardar los datos importados en el almacenamiento local
       if(parsedData.days){
         for(const k in parsedData.days){ await storeSet("bj:day:"+k, JSON.stringify(parsedData.days[k])); }
       }
@@ -2028,7 +2027,6 @@
 
       setGhStatus("Datos cargados correctamente.", "ok");
       
-      // Cierra el modal y refresca la vista actual
       closeGithubModal();
       await refresh();
     }catch(err){
