@@ -572,12 +572,19 @@
        cuando el ancestro (#whiteboard-canvas) tiene su propio transform */
     transform: translateZ(0);
   }
-  .board-el.text-el:focus{
+  .board-el.text-el:focus-within{
     border-color: var(--accent);
     background: rgba(201,162,103,0.1);
     box-shadow: 0 4px 18px rgba(0,0,0,0.32);
   }
-  .board-el.text-el:empty::before{
+  /* Contenido realmente editable: va DENTRO del recuadro, separado del
+     botón de borrar, para que ese botón nunca cuente como texto escrito. */
+  .text-el-content{
+    outline: none;
+    min-width: 100px;
+    min-height: 1.4em;
+  }
+  .text-el-content:empty::before{
     content: attr(data-placeholder);
     color: var(--text-faint);
   }
@@ -1238,18 +1245,26 @@
     if(el.type === "text"){
       node = document.createElement("div");
       node.className = "board-el text-el";
-      node.contentEditable = "true";
-      node.setAttribute("data-placeholder", "Escribe…");
-      node.textContent = el.content;
+
+      // El texto vive en un hijo aparte: así el botón de borrar (agregado
+      // más abajo como hijo directo de `node`) nunca queda dentro de la
+      // zona contenteditable ni se cuela en el texto escrito.
+      const editable = document.createElement("div");
+      editable.className = "text-el-content";
+      editable.contentEditable = "true";
+      editable.setAttribute("data-placeholder", "Escribe…");
+      editable.textContent = el.content;
+      node.appendChild(editable);
+
       let preEditSnapshot = null;
-      node.addEventListener("focus", () => { preEditSnapshot = snapshotWhiteboard(); });
-      node.addEventListener("input", () => {
-        el.content = node.textContent;
+      editable.addEventListener("focus", () => { preEditSnapshot = snapshotWhiteboard(); });
+      editable.addEventListener("input", () => {
+        el.content = editable.textContent;
         saveDay();
-        void node.offsetHeight; // fuerza un repintado inmediato del recuadro
+        void editable.offsetHeight; // fuerza un repintado inmediato
       });
-      node.addEventListener("blur", () => {
-        const emptied = !node.textContent.trim();
+      editable.addEventListener("blur", () => {
+        const emptied = !editable.textContent.trim();
         if(emptied){
           dayData.whiteboard.elements = dayData.whiteboard.elements.filter(e => e.id !== el.id);
           selected.delete(el.id);
@@ -1296,7 +1311,7 @@
       if(tool !== "select") return;
       ev.stopPropagation();
       if(ev.target === del) return;
-      if(el.type === "text" && document.activeElement === node) return;
+      if(el.type === "text" && node.contains(document.activeElement) && document.activeElement !== node) return;
       const additive = ev.ctrlKey || ev.metaKey || ev.shiftKey;
       if(additive) toggleSelect(el.id);
       else if(!selected.has(el.id)) setSelection([el.id]);
@@ -1304,7 +1319,7 @@
         // Entra a edición de una vez en el primer click, en lugar de
         // depender del foco nativo (que a veces no ganaba la carrera).
         ev.preventDefault();
-        placeCaretEnd(node);
+        placeCaretEnd(node.querySelector(".text-el-content"));
       }
       startDragSelected(ev);
     });
@@ -1414,7 +1429,11 @@
     // el navegador ya no compite por el foco: podemos enfocar de una
     // vez, sin esperar frames (eso era lo que causaba la demora).
     const node = elLayer.querySelector('[data-id="'+id+'"]');
-    if(node){ placeCaretEnd(node); setSelection([id]); }
+    if(node){
+      const editable = node.querySelector(".text-el-content") || node;
+      placeCaretEnd(editable);
+      setSelection([id]);
+    }
   }
 
   function addElement(type, x, y, content){
