@@ -509,6 +509,7 @@
     border-radius: 6px;
     border: 1px solid transparent;
     cursor: text;
+    transform: translateZ(0);
   }
   .board-el.text-el:focus{
     border: 1px dashed var(--accent);
@@ -1113,7 +1114,7 @@
       node.textContent = el.content;
       let preEditSnapshot = null;
       node.addEventListener("focus", () => { preEditSnapshot = snapshotWhiteboard(); });
-      node.addEventListener("input", () => { el.content = node.textContent; saveDay(); });
+      node.addEventListener("input", () => { el.content = node.textContent; saveDay(); void node.offsetHeight;});
       node.addEventListener("blur", () => {
         const emptied = !node.textContent.trim();
         if(emptied){
