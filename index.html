@@ -328,10 +328,23 @@
     color: var(--text-faint);
     flex:1;
   }
+  .xp-streak{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-faint);
+    opacity: .7;
+    display:flex;
+    align-items:center;
+    gap: 3px;
+    transition: opacity .2s ease, color .2s ease;
+  }
+  .xp-streak.active{ color: var(--accent); opacity: 1; }
   .xp-meta{
     font-family:'IBM Plex Mono', monospace;
     font-size: 9.5px;
     color: var(--text-faint);
+    margin-top: 6px;
+    text-align: right;
   }
   .xp-bar-track{
     height: 5px;
@@ -346,6 +359,16 @@
     background: linear-gradient(90deg, var(--accent), #e0c084);
     border-radius: 4px;
     transition: width .5s ease;
+    position: relative;
+  }
+  .xp-bar-fill.max{
+    background: linear-gradient(90deg, #e0c084, var(--accent), #e0c084);
+    background-size: 200% 100%;
+    animation: maxShimmer 3s linear infinite;
+  }
+  @keyframes maxShimmer{
+    0%{ background-position: 0% 0%; }
+    100%{ background-position: 200% 0%; }
   }
   .xp-level-badge.level-up{
     animation: levelUpPulse .7s ease;
@@ -354,6 +377,16 @@
     0%{ text-shadow: 0 0 0 rgba(201,162,103,0); }
     30%{ text-shadow: 0 0 10px rgba(201,162,103,0.9); }
     100%{ text-shadow: 0 0 0 rgba(201,162,103,0); }
+  }
+  .xp-bar-fill.level-up-flash::after{
+    content:'';
+    position:absolute; inset:0;
+    background: rgba(255,255,255,0.65);
+    animation: barFlash .6s ease;
+  }
+  @keyframes barFlash{
+    0%{ opacity: 1; }
+    100%{ opacity: 0; }
   }
 
   /* ---------- BOARD COLUMN ---------- */
@@ -723,11 +756,12 @@
         <div class="xp-level-row">
           <span class="xp-level-badge" id="xpLevelBadge">Nv. 1</span>
           <span class="xp-level-title" id="xpLevelTitle">Aprendiz</span>
-          <span class="xp-meta" id="xpMeta">0 / 80 XP</span>
+          <span class="xp-streak" id="xpStreak" title="Racha de días activos">🔥 0</span>
         </div>
         <div class="xp-bar-track">
           <div class="xp-bar-fill" id="xpBarFill"></div>
         </div>
+        <div class="xp-meta" id="xpMeta">0 / 80 XP</div>
       </div>
     </section>
 
@@ -920,12 +954,40 @@
 
   /* ============ XP / NIVEL ============ */
   const XP_PER_TASK = 10;
-  const LEVEL_TITLES = ["Aprendiz","Constante","Disciplinado","Metódico","Estratega","Virtuoso","Maestro","Leyenda"];
-  let xpState = { totalXP: 0 };
+  const MAX_LEVEL = 100;
+
+  // Un título cada 5 niveles (20 tramos hasta el nivel 100), cada vez
+  // más solemnes.
+  const LEVEL_TITLES = [
+    "Aprendiz",              // 1-5
+    "Constante",             // 6-10
+    "Disciplinado",          // 11-15
+    "Metódico",              // 16-20
+    "Estratega",             // 21-25
+    "Virtuoso",              // 26-30
+    "Maestro",               // 31-35
+    "Erudito",               // 36-40
+    "Visionario",            // 41-45
+    "Arquitecto de Hábitos", // 46-50
+    "Guardián del Tiempo",   // 51-55
+    "Artesano de Rutinas",   // 56-60
+    "Centinela",             // 61-65
+    "Sabio",                 // 66-70
+    "Maestro Ancestral",     // 71-75
+    "Titán de la Constancia",// 76-80
+    "Oráculo",               // 81-85
+    "Leyenda Viviente",      // 86-90
+    "Mítico",                // 91-95
+    "Leyenda Eterna"         // 96-100
+  ];
+
+  let xpState = { totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null };
 
   async function loadXP(){
     const raw = await storeGet("bj:xp");
-    xpState = raw ? JSON.parse(raw) : { totalXP: 0 };
+    xpState = raw
+      ? Object.assign({ totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null }, JSON.parse(raw))
+      : { totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null };
   }
   function saveXP(){
     scheduleSave("bj:xp", JSON.stringify(xpState));
@@ -937,28 +999,57 @@
   function computeLevelInfo(totalXP){
     let level = 1;
     let remaining = Math.max(0, totalXP);
-    let needed = levelThreshold(level);
-    while(remaining >= needed){
+    while(level < MAX_LEVEL){
+      const needed = levelThreshold(level);
+      if(remaining < needed) break;
       remaining -= needed;
       level++;
-      needed = levelThreshold(level);
     }
-    return { level, xpIntoLevel: remaining, xpForNext: needed };
+    if(level >= MAX_LEVEL){
+      return { level: MAX_LEVEL, xpIntoLevel: remaining, xpForNext: null, maxed: true };
+    }
+    return { level, xpIntoLevel: remaining, xpForNext: levelThreshold(level), maxed: false };
   }
   function levelTitle(level){
-    return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+    const tier = Math.min(Math.floor((level - 1) / 5), LEVEL_TITLES.length - 1);
+    return LEVEL_TITLES[tier];
   }
   function renderXP(){
     const info = computeLevelInfo(xpState.totalXP);
     document.getElementById("xpLevelBadge").textContent = "Nv. " + info.level;
     document.getElementById("xpLevelTitle").textContent = levelTitle(info.level);
-    document.getElementById("xpMeta").textContent = info.xpIntoLevel + " / " + info.xpForNext + " XP";
-    document.getElementById("xpBarFill").style.width =
-      Math.min(100, Math.round((info.xpIntoLevel / info.xpForNext) * 100)) + "%";
+
+    const fill = document.getElementById("xpBarFill");
+    const meta = document.getElementById("xpMeta");
+    if(info.maxed){
+      fill.style.width = "100%";
+      fill.classList.add("max");
+      meta.textContent = xpState.totalXP + " XP · nivel máximo";
+    } else {
+      fill.classList.remove("max");
+      fill.style.width = Math.min(100, Math.round((info.xpIntoLevel / info.xpForNext) * 100)) + "%";
+      meta.textContent = info.xpIntoLevel + " / " + info.xpForNext + " XP";
+    }
+
+    const streakEl = document.getElementById("xpStreak");
+    streakEl.textContent = "🔥 " + xpState.streak;
+    streakEl.classList.toggle("active", xpState.streak > 0);
+    streakEl.title = xpState.streak > 0
+      ? "Racha de " + xpState.streak + " día(s) · mejor racha: " + xpState.bestStreak
+      : "Completá una tarea hoy para empezar una racha";
+  }
+  function bumpStreak(){
+    const today = dateKey(new Date());
+    if(xpState.lastActiveDate === today) return; // ya contado hoy
+    const yesterday = dateKey(addDays(new Date(), -1));
+    xpState.streak = (xpState.lastActiveDate === yesterday) ? xpState.streak + 1 : 1;
+    xpState.bestStreak = Math.max(xpState.bestStreak, xpState.streak);
+    xpState.lastActiveDate = today;
   }
   function addXP(amount){
     const before = computeLevelInfo(xpState.totalXP).level;
     xpState.totalXP = Math.max(0, xpState.totalXP + amount);
+    if(amount > 0) bumpStreak();
     saveXP();
     renderXP();
     const after = computeLevelInfo(xpState.totalXP).level;
@@ -967,6 +1058,11 @@
       badge.classList.remove("level-up");
       void badge.offsetWidth; // reinicia la animación si se repite
       badge.classList.add("level-up");
+
+      const fill = document.getElementById("xpBarFill");
+      fill.classList.remove("level-up-flash");
+      void fill.offsetWidth;
+      fill.classList.add("level-up-flash");
     }
   }
   async function initXP(){
