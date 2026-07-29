@@ -32,7 +32,7 @@
     --radius-lg: 16px;
   }
   *{ box-sizing: border-box; }
-  html,body{ height:100%; }
+  html,body{ height:100%; width:100%; overflow-x:hidden; }
   body{
     margin:0;
     background: radial-gradient(ellipse at 20% 0%, #171a23 0%, var(--bg) 55%);
@@ -51,6 +51,8 @@
     display:flex;
     flex-direction:column;
     padding: 22px 26px 0 26px;
+    overflow-x:hidden;
+    max-width:100vw;
   }
 
   /* ---------- HEADER ---------- */
@@ -894,6 +896,7 @@
     justify-content:center;
     gap: 10px;
     padding: 16px 0 20px 0;
+    max-width:100%;
   }
   .carousel-arrow{
     background:none; border:none;
@@ -901,6 +904,7 @@
     cursor:pointer;
     font-size:18px;
     padding: 6px;
+    flex-shrink:0;
   }
   .carousel-arrow:hover{ color: var(--accent); }
   #carousel{
@@ -966,6 +970,9 @@
     transform: scale(1.3);
   }
 
+  /* Calendario persistente para móvil, oculto en escritorio (ahí se usa el panel colapsable) */
+  .mobile-calendar-panel{ display:none; }
+
   /* ============ RESPONSIVE / MOBILE ============ */
   @media (max-width: 860px){
     #app{ padding: 16px 14px 0 14px; }
@@ -1016,8 +1023,40 @@
     #toolbar{ padding: 5px; gap:4px; }
     .tool-btn{ width:32px; height:32px; }
 
-    #carousel-wrap{ padding: 4px 0 16px 0; }
-    .day-tab{ width: 48px; }
+    /* Carrusel de fecha: se autoajusta al ancho disponible en vez de desbordar la pantalla */
+    #carousel-wrap{
+      padding: 4px 8px 16px 8px;
+      gap: 6px;
+      max-width: 100%;
+    }
+    #carousel{
+      flex: 1 1 auto;
+      min-width: 0;
+      gap: 6px;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    #carousel::-webkit-scrollbar{ display:none; }
+    .day-tab{ width: 46px; flex-shrink:0; scroll-snap-align: center; }
+
+    /* El panel de calendario colapsable dentro de "Metas y hábitos" queda oculto en móvil:
+       ahora el calendario vive siempre visible debajo del carrusel de fecha diaria. */
+    #calendarPanel{ display:none; }
+
+    .mobile-calendar-panel{
+      display:block;
+      flex-shrink:0;
+      background: var(--panel);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 10px 10px 12px 10px;
+      margin: 0 0 14px 0;
+      max-height: 42vh;
+      overflow-y: auto;
+    }
   }
 </style>
 </head>
@@ -1057,8 +1096,8 @@
           </div>
           <div class="xp-meta" id="xpMeta">0 / 80 XP</div>
           <div class="xp-streak-row">
-            <span class="xp-streak" id="xpStreak" title="Racha de días activos">🔥 0</span>
-            <span class="xp-streak" id="xpMonthStreak" title="Meses activos">📅 0</span>
+            <span class="xp-streak" id="xpStreak" title="Racha de días activos">Racha 0</span>
+            <span class="xp-streak" id="xpMonthStreak" title="Meses activos">Racha Mensual 0</span>
           </div>
         </div>
         <div class="track-block track-block-goals">
@@ -1152,7 +1191,7 @@
           <span class="chev">▾</span>
         </button>
         <div class="goal-body calendar-body">
-          <div id="miniCalendar"></div>
+          <div id="miniCalendar" class="mini-calendar-mount"></div>
           <div class="astro-line" id="astroLine">Cargando…</div>
         </div>
       </div>
@@ -1169,6 +1208,11 @@
     <button class="carousel-arrow" id="carouselPrev">‹</button>
     <div id="carousel"></div>
     <button class="carousel-arrow" id="carouselNext">›</button>
+  </div>
+
+  <div class="mobile-calendar-panel" id="mobileCalendarPanel">
+    <div id="miniCalendarMobile" class="mini-calendar-mount"></div>
+    <div class="astro-line" id="astroLineMobile">Cargando…</div>
   </div>
 
 </div>
@@ -1445,14 +1489,14 @@
 
   function renderStreak(){
     const streakEl = document.getElementById("xpStreak");
-    streakEl.textContent = "🔥 " + xpState.streak;
+    streakEl.textContent = "Racha " + xpState.streak;
     streakEl.classList.toggle("active", xpState.streak > 0);
     streakEl.title = xpState.streak > 0
       ? "Racha de " + xpState.streak + " día(s) activos · mejor racha: " + xpState.bestStreak
       : "Completá una tarea hoy para empezar tu racha";
 
     const monthEl = document.getElementById("xpMonthStreak");
-    monthEl.textContent = "📅 " + xpState.monthStreak;
+    monthEl.textContent = "Racha Mensual " + xpState.monthStreak;
     monthEl.classList.toggle("active", xpState.monthStreak > 0);
     monthEl.title = xpState.monthStreak > 0
       ? xpState.monthStreak + " mes(es) activos · mejor racha: " + xpState.bestMonthStreak
@@ -2497,7 +2541,10 @@
   }
 
   function renderMiniCalendar(){
-    const root = document.getElementById("miniCalendar");
+    document.querySelectorAll(".mini-calendar-mount").forEach(buildMiniCalendarInto);
+  }
+
+  function buildMiniCalendarInto(root){
     root.innerHTML = "";
 
     const head = document.createElement("div");
@@ -2558,6 +2605,10 @@
   }
 
   /* ============ CLIMA / LUNA / SOL ============ */
+  // Símbolos de estilo texto (VS-15 = presentación de texto, heredan la fuente y el color del párrafo,
+  // a diferencia de un emoji a todo color como 🔥 o 📅 que no tiene esa variante).
+  const SUN_TXT = "\u2600\uFE0E";   // ☀︎
+  const MOON_TXT = "\u263E\uFE0E";  // ☾︎
   const astroCache = {};
   let cachedCoords = null;
   let geoTried = false;
@@ -2617,18 +2668,20 @@
   }
 
   async function renderAstroLine(){
-    const el = document.getElementById("astroLine");
-    if(!el) return;
-    el.textContent = "Cargando…";
+    const els = document.querySelectorAll(".astro-line");
+    if(!els.length) return;
+    els.forEach(el => { el.textContent = "Cargando…"; });
     const forDate = currentDate;
     const info = await fetchDayAstro(forDate);
     if(dateKey(currentDate) !== dateKey(forDate)) return; // el usuario ya cambió de día
     const moonTxt = "Luna " + info.moonIllum + "%";
+    let text;
     if(info.tempMax !== undefined){
-      el.textContent = info.tempMax + "°/" + info.tempMin + "° - " + moonTxt + " - (sol) " + formatISOTime(info.sunrise) + "/(luna) " + formatISOTime(info.sunset);
+      text = info.tempMax + "°/" + info.tempMin + "° - " + moonTxt + " - " + SUN_TXT + " " + formatISOTime(info.sunrise) + "/" + MOON_TXT + " " + formatISOTime(info.sunset);
     } else {
-      el.textContent = moonTxt + " · clima no disponible";
+      text = moonTxt + " · clima no disponible";
     }
+    els.forEach(el => { el.textContent = text; });
   }
 
   /* ============ EXPORT / GITHUB SYNC ============ */
