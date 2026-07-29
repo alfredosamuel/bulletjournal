@@ -220,6 +220,7 @@
     gap: 22px;
     min-height:0;
     padding: 18px 0;
+    position: relative;
   }
 
   /* ---------- TODO COLUMN ---------- */
@@ -941,6 +942,83 @@
   }
   .day-tab.today .num{ color: var(--accent); }
   .day-tab.today .sub{ color: var(--accent); }
+
+  /* ---------- PAGE DOTS (solo móvil) ---------- */
+  .page-dots{
+    display:none;
+    justify-content:center;
+    align-items:center;
+    gap: 8px;
+    padding: 2px 0 10px 0;
+    flex-shrink:0;
+  }
+  .page-dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    border:none;
+    background: var(--border);
+    padding:0;
+    cursor:pointer;
+    transition: background .2s ease, transform .2s ease;
+  }
+  .page-dot.active{
+    background: var(--accent);
+    transform: scale(1.3);
+  }
+
+  /* ============ RESPONSIVE / MOBILE ============ */
+  @media (max-width: 860px){
+    #app{ padding: 16px 14px 0 14px; }
+
+    #page-header{ flex-wrap: wrap; gap: 10px; }
+    .date-block h1{ font-size: 24px; }
+    .date-block h1 .month-part{ font-size: 18px; }
+    #nav-arrows{ gap:6px; }
+    .icon-btn.wide-btn{ font-size: 11px; padding: 0 12px; height: 32px; }
+    .icon-btn{ width:32px; height:32px; }
+
+    .page-dots{ display:flex; }
+
+    #main-grid{
+      display:flex;
+      flex-direction:row;
+      grid-template-columns: unset;
+      gap:0;
+      padding: 12px 0;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      position: static;
+    }
+    #todo-col, #board-col, #goals-stack{
+      flex: 0 0 100%;
+      width: 100%;
+      max-width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    #todo-col{ margin-right: 0; }
+    #board-col{ margin: 0 0; }
+
+    #goals-stack{
+      position: static;
+      top:auto; right:auto;
+      max-height: none;
+      background: var(--panel);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    .board-el.text-el{ font-size: 16px; }
+    #toolbar{ padding: 5px; gap:4px; }
+    .tool-btn{ width:32px; height:32px; }
+
+    #carousel-wrap{ padding: 4px 0 16px 0; }
+    .day-tab{ width: 48px; }
+  }
 </style>
 </head>
 <body>
@@ -1018,60 +1096,6 @@
         <span id="zoomLabel">100%</span>
       </div>
 
-      <div id="goals-stack">
-        <div class="goal-panel" id="monthPanel">
-          <button class="goal-toggle" data-target="monthPanel">
-            <span>Metas del mes <span class="reminder-badge" id="monthReminder" hidden>revisar</span></span>
-            <span class="chev">▾</span>
-          </button>
-          <div class="goal-body">
-            <div class="goal-add-row">
-              <input type="text" id="monthGoalInput" placeholder="Nueva meta del mes…" />
-              <button id="addMonthGoalBtn" title="Agregar meta">+</button>
-            </div>
-            <div id="monthGoalsList" class="goal-items-list"></div>
-          </div>
-        </div>
-        <div class="goal-panel" id="weekPanel">
-          <button class="goal-toggle" data-target="weekPanel">
-            <span>Metas de la semana</span>
-            <span class="chev">▾</span>
-          </button>
-          <div class="goal-body">
-            <div class="goal-add-row">
-              <input type="text" id="weekGoalInput" placeholder="Nueva meta de la semana…" />
-              <button id="addWeekGoalBtn" title="Agregar meta">+</button>
-            </div>
-            <div id="weekGoalsList" class="goal-items-list"></div>
-          </div>
-        </div>
-        <div class="goal-panel" id="habitsPanel">
-          <button class="goal-toggle" data-target="habitsPanel">
-            <span>Hábitos</span>
-            <span class="chev">▾</span>
-          </button>
-          <div class="goal-body">
-            <div class="habits-body">
-              <div class="habit-add-row">
-                <input type="text" id="newHabitInput" placeholder="Nuevo hábito…" />
-                <button id="addHabitBtn" title="Agregar hábito">+</button>
-              </div>
-              <div id="habitsList" class="habits-cards"></div>
-            </div>
-          </div>
-        </div>
-        <div class="goal-panel" id="calendarPanel">
-          <button class="goal-toggle" data-target="calendarPanel">
-            <span>Calendario</span>
-            <span class="chev">▾</span>
-          </button>
-          <div class="goal-body calendar-body">
-            <div id="miniCalendar"></div>
-            <div class="astro-line" id="astroLine">Cargando…</div>
-          </div>
-        </div>
-      </div>
-
       <div id="whiteboard-viewport">
         <div id="whiteboard-canvas">
           <svg id="strokes-svg"></svg>
@@ -1079,7 +1103,67 @@
         </div>
       </div>
     </section>
+
+    <div id="goals-stack">
+      <div class="goal-panel" id="monthPanel">
+        <button class="goal-toggle" data-target="monthPanel">
+          <span>Metas del mes <span class="reminder-badge" id="monthReminder" hidden>revisar</span></span>
+          <span class="chev">▾</span>
+        </button>
+        <div class="goal-body">
+          <div class="goal-add-row">
+            <input type="text" id="monthGoalInput" placeholder="Nueva meta del mes…" />
+            <button id="addMonthGoalBtn" title="Agregar meta">+</button>
+          </div>
+          <div id="monthGoalsList" class="goal-items-list"></div>
+        </div>
+      </div>
+      <div class="goal-panel" id="weekPanel">
+        <button class="goal-toggle" data-target="weekPanel">
+          <span>Metas de la semana</span>
+          <span class="chev">▾</span>
+        </button>
+        <div class="goal-body">
+          <div class="goal-add-row">
+            <input type="text" id="weekGoalInput" placeholder="Nueva meta de la semana…" />
+            <button id="addWeekGoalBtn" title="Agregar meta">+</button>
+          </div>
+          <div id="weekGoalsList" class="goal-items-list"></div>
+        </div>
+      </div>
+      <div class="goal-panel" id="habitsPanel">
+        <button class="goal-toggle" data-target="habitsPanel">
+          <span>Hábitos</span>
+          <span class="chev">▾</span>
+        </button>
+        <div class="goal-body">
+          <div class="habits-body">
+            <div class="habit-add-row">
+              <input type="text" id="newHabitInput" placeholder="Nuevo hábito…" />
+              <button id="addHabitBtn" title="Agregar hábito">+</button>
+            </div>
+            <div id="habitsList" class="habits-cards"></div>
+          </div>
+        </div>
+      </div>
+      <div class="goal-panel" id="calendarPanel">
+        <button class="goal-toggle" data-target="calendarPanel">
+          <span>Calendario</span>
+          <span class="chev">▾</span>
+        </button>
+        <div class="goal-body calendar-body">
+          <div id="miniCalendar"></div>
+          <div class="astro-line" id="astroLine">Cargando…</div>
+        </div>
+      </div>
+    </div>
   </main>
+
+  <div class="page-dots" id="pageDots">
+    <button class="page-dot active" data-page="0" title="To-do"></button>
+    <button class="page-dot" data-page="1" title="Pizarra"></button>
+    <button class="page-dot" data-page="2" title="Metas y hábitos"></button>
+  </div>
 
   <div id="carousel-wrap">
     <button class="carousel-arrow" id="carouselPrev">‹</button>
@@ -2775,6 +2859,30 @@
     }
   });
 
+  /* ============ SWIPE MÓVIL (3 páginas: to-do / pizarra / metas) ============ */
+  function initMobileSwipe(){
+    const mainGrid = document.getElementById("main-grid");
+    const dots = Array.from(document.querySelectorAll(".page-dot"));
+    if(!mainGrid || dots.length === 0) return;
+
+    dots.forEach(d => {
+      d.addEventListener("click", () => {
+        const idx = parseInt(d.dataset.page, 10);
+        mainGrid.scrollTo({ left: idx * mainGrid.clientWidth, behavior: "smooth" });
+      });
+    });
+
+    let scrollTimer = null;
+    mainGrid.addEventListener("scroll", () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        if(mainGrid.clientWidth === 0) return;
+        const idx = Math.round(mainGrid.scrollLeft / mainGrid.clientWidth);
+        dots.forEach((d,i) => d.classList.toggle("active", i === idx));
+      }, 80);
+    });
+  }
+
   /* ============ MAIN FLOW ============ */
   async function goToDate(d){
     await Promise.all([
@@ -2812,12 +2920,16 @@
     renderMiniCalendar();
     renderAstroLine();
     updateUndoRedoButtons();
+    const mainGrid = document.getElementById("main-grid");
+    if(mainGrid) mainGrid.scrollLeft = 0;
+    document.querySelectorAll(".page-dot").forEach((d,i) => d.classList.toggle("active", i===0));
   }
 
   async function init(){
     await loadHabits();
     await initXP();
     await refresh();
+    initMobileSwipe();
   }
 
   init();
