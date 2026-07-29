@@ -1518,12 +1518,12 @@
     }
   }
 
-  // El XP nunca se resta: estas funciones solo suman. Los checkboxes controlan
-  // (vía flags "otorgado") que cada logro sume una única vez.
+  // El XP se suma al marcar y se resta al desmarcar (mismo monto que se otorgó),
+  // para que activar/desactivar un check nunca desincronice el total.
   function addXP(amount){
     const before = levelInfoFor(xpState.totalXP, levelThreshold, LEVEL_TITLES, MAX_LEVEL).level;
-    xpState.totalXP = xpState.totalXP + amount;
-    bumpStreak();
+    xpState.totalXP = Math.max(0, xpState.totalXP + amount);
+    if(amount > 0) bumpStreak();
     saveXP();
     renderTrack('totalXP', 'xpLevelBadge', 'xpLevelTitle', 'xpBarFill', 'xpMeta', levelThreshold, LEVEL_TITLES, MAX_LEVEL);
     renderStreak();
@@ -1533,7 +1533,7 @@
 
   function addGoalXP(amount){
     const before = levelInfoFor(xpState.goalsXP, goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL).level;
-    xpState.goalsXP = xpState.goalsXP + amount;
+    xpState.goalsXP = Math.max(0, xpState.goalsXP + amount);
     saveXP();
     renderTrack('goalsXP', 'goalsLevelBadge', 'goalsLevelTitle', 'goalsBarFill', 'goalsMeta', goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL);
     const after = levelInfoFor(xpState.goalsXP, goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL).level;
@@ -1546,7 +1546,7 @@
     if(!xpState.habits) xpState.habits = {};
     const cur = xpState.habits[habitId] || 0;
     const before = levelInfoFor(cur, disciplineLevelThreshold, DISCIPLINE_TITLES, DISCIPLINE_MAX_LEVEL).level;
-    xpState.habits[habitId] = cur + amount;
+    xpState.habits[habitId] = Math.max(0, cur + amount);
     saveXP();
     const after = levelInfoFor(xpState.habits[habitId], disciplineLevelThreshold, DISCIPLINE_TITLES, DISCIPLINE_MAX_LEVEL).level;
     return after > before;
@@ -1602,9 +1602,14 @@
         const nowDone = cb.checked;
         dayData.habits[h.id] = nowDone;
         let leveledUp = false;
-        if(nowDone && !dayData.habitsAwarded[h.id]){
-          dayData.habitsAwarded[h.id] = true;
-          leveledUp = awardHabitXP(h.id, HABIT_XP);
+        if(nowDone){
+          if(!dayData.habitsAwarded[h.id]){
+            dayData.habitsAwarded[h.id] = true;
+            leveledUp = awardHabitXP(h.id, HABIT_XP);
+          }
+        } else if(dayData.habitsAwarded[h.id]){
+          dayData.habitsAwarded[h.id] = false;
+          awardHabitXP(h.id, -HABIT_XP);
         }
         saveDay();
         renderHabits();
@@ -1713,6 +1718,25 @@
     }
   }
 
+  // Otorga (una única vez) el XP de metas que quedaron marcadas como hechas en datos
+  // antiguos/importados pero cuyo flag "xpAwarded" nunca se guardó, y deja ese flag en
+  // un booleano correcto para que de ahí en más marcar/desmarcar sume o reste bien.
+  function backfillGoalsXP(container, amount){
+    let changed = false;
+    container.goals.forEach(g => {
+      if(typeof g.xpAwarded !== "boolean"){
+        changed = true;
+        if(g.done){
+          g.xpAwarded = true;
+          addGoalXP(amount);
+        } else {
+          g.xpAwarded = false;
+        }
+      }
+    });
+    return changed;
+  }
+
   function computeHourLabel(startHourStr, index){
     if(index === 0) return startHourStr;
     let h = parseInt((startHourStr||"10:00").split(":")[0], 10);
@@ -1744,23 +1768,44 @@
       if(preservedAwarded) dayData.habitsAwarded = preservedAwarded;
     }
     // Migración: tareas de versiones previas sin la marca xpAwarded.
-    // Si ya estaban marcadas como hechas, se asume que su XP ya había sido
-    // otorgado bajo el sistema anterior (para no duplicar ni perder XP).
+    // Antes esto solo marcaba la tarea como "ya otorgada" sin sumar el XP real,
+    // por eso el total podía quedar en 0 aunque las tareas estuvieran marcadas.
+    // Ahora, si estaba hecha, se le otorga el XP en este momento (una sola vez).
+    let dayNeedsSave = false;
     dayData.tasks.forEach(t => {
-      if(typeof t.xpAwarded !== "boolean") t.xpAwarded = !!t.done;
+      if(typeof t.xpAwarded !== "boolean"){
+        dayNeedsSave = true;
+        if(t.done){
+          t.xpAwarded = true;
+          addXP(XP_PER_TASK);
+        } else {
+          t.xpAwarded = false;
+        }
+      }
     });
     if(!dayData.habits) dayData.habits = {};
-    if(!dayData.habitsAwarded){
-      dayData.habitsAwarded = {};
-      Object.keys(dayData.habits).forEach(id => { dayData.habitsAwarded[id] = !!dayData.habits[id]; });
-    }
+    if(!dayData.habitsAwarded) dayData.habitsAwarded = {};
+    Object.keys(dayData.habits).forEach(id => {
+      if(typeof dayData.habitsAwarded[id] !== "boolean"){
+        dayNeedsSave = true;
+        if(dayData.habits[id]){
+          dayData.habitsAwarded[id] = true;
+          awardHabitXP(id, HABIT_XP);
+        } else {
+          dayData.habitsAwarded[id] = false;
+        }
+      }
+    });
+    if(dayNeedsSave) saveDay();
 
     weekData = rawWeek ? JSON.parse(rawWeek) : defaultWeek();
     if(!weekData.whiteboard) weekData.whiteboard = defaultWhiteboard();
     migrateGoals(weekData);
+    if(backfillGoalsXP(weekData, GOAL_XP)) saveWeek();
 
     monthData = rawMonth ? JSON.parse(rawMonth) : defaultMonth();
     migrateGoals(monthData);
+    if(backfillGoalsXP(monthData, GOAL_XP)) saveMonth();
 
     // Migración: si el día traía una pizarra vieja (formato anterior por día) y la
     // semana todavía no tiene contenido, se traslada para no perder lo dibujado.
@@ -1834,9 +1879,14 @@
       cb.addEventListener("change", () => {
         task.done = cb.checked;
         row.classList.toggle("done", cb.checked);
-        if(cb.checked && !task.xpAwarded){
-          task.xpAwarded = true;
-          addXP(XP_PER_TASK);
+        if(cb.checked){
+          if(!task.xpAwarded){
+            task.xpAwarded = true;
+            addXP(XP_PER_TASK);
+          }
+        } else if(task.xpAwarded){
+          task.xpAwarded = false;
+          addXP(-XP_PER_TASK);
         }
         saveDay();
       });
@@ -1887,9 +1937,14 @@
       cb.addEventListener("change", () => {
         g.done = cb.checked;
         row.classList.toggle("done", cb.checked);
-        if(cb.checked && !g.xpAwarded){
-          g.xpAwarded = true;
-          addGoalXP(GOAL_XP);
+        if(cb.checked){
+          if(!g.xpAwarded){
+            g.xpAwarded = true;
+            addGoalXP(GOAL_XP);
+          }
+        } else if(g.xpAwarded){
+          g.xpAwarded = false;
+          addGoalXP(-GOAL_XP);
         }
         saveFn();
       });
