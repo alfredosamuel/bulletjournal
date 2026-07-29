@@ -20,6 +20,10 @@
     --text-faint: #5d6270;
     --accent: #c9a267;
     --accent-soft: rgba(201,162,103,0.14);
+    --habit-blue: #6fa3ff;
+    --habit-blue-soft: rgba(111,163,255,0.14);
+    --habit-green: #7ed6a5;
+    --habit-green-soft: rgba(126,214,165,0.14);
     --danger: #d9756a;
     --pen-black: #dfe3ea;
     --pen-red: #e0685f;
@@ -58,13 +62,27 @@
     border-bottom: 1px solid var(--border-soft);
     flex-shrink:0;
   }
+  .eyebrow-row{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
   .date-block .eyebrow{
     font-family:'IBM Plex Mono', monospace;
     font-size: 11px;
     letter-spacing: 2.5px;
     text-transform: uppercase;
     color: var(--accent);
-    margin-bottom: 4px;
+    margin-bottom: 0;
+  }
+  .clock-inline{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-faint);
+    padding-left: 10px;
+    border-left: 1px solid var(--border-soft);
   }
   .date-block h1{
     font-family:'Fraunces', serif;
@@ -266,7 +284,10 @@
     width:34px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
   }
-  .task-check input{
+
+  /* checkbox reutilizado en tareas, metas y hábitos */
+  .task-check input,
+  .mini-checkbox{
     appearance:none;
     width:14px; height:14px;
     border:1.5px solid var(--text-faint);
@@ -274,9 +295,12 @@
     cursor:pointer;
     position:relative;
     transition: all .15s ease;
+    flex-shrink:0;
   }
-  .task-check input:checked{ background: var(--accent); border-color: var(--accent); }
-  .task-check input:checked::after{
+  .task-check input:checked,
+  .mini-checkbox:checked{ background: var(--accent); border-color: var(--accent); }
+  .task-check input:checked::after,
+  .mini-checkbox:checked::after{
     content:'';
     position:absolute; left:4px; top:1px;
     width:4px; height:8px;
@@ -308,6 +332,11 @@
     border-top: 1px solid var(--border-soft);
     background: var(--panel-2);
   }
+  .track-block-goals{
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-soft);
+  }
   .xp-level-row{
     display:flex;
     align-items:baseline;
@@ -321,6 +350,9 @@
     font-size: 13px;
     color: var(--accent);
   }
+  .xp-level-badge.badge-gold{ color: var(--accent); text-shadow: 0 0 7px rgba(201,162,103,0.55); }
+  .xp-level-badge.badge-blue{ color: var(--habit-blue); text-shadow: 0 0 7px rgba(111,163,255,0.55); }
+  .xp-level-badge.badge-green{ color: var(--habit-green); text-shadow: 0 0 6px rgba(126,214,165,0.5); }
   .xp-level-title{
     font-family:'IBM Plex Mono', monospace;
     font-size: 9.5px;
@@ -328,6 +360,11 @@
     text-transform: uppercase;
     color: var(--text-faint);
     flex:1;
+  }
+  .xp-streak-row{
+    display:flex;
+    gap: 12px;
+    margin-top: 7px;
   }
   .xp-streak{
     font-family:'IBM Plex Mono', monospace;
@@ -354,16 +391,38 @@
     border: 1px solid var(--border-soft);
     overflow:hidden;
   }
+  .xp-bar-track.small{ height: 4px; }
   .xp-bar-fill{
     height:100%;
     width:0%;
-    background: linear-gradient(90deg, var(--accent), #e0c084);
     border-radius: 4px;
-    transition: width .5s ease;
+    transition: width .5s ease, box-shadow .3s ease;
     position: relative;
   }
-  .xp-bar-fill.max{
+  .xp-bar-fill.track-gold{
+    background: linear-gradient(90deg, var(--accent), #e0c084);
+    box-shadow: 0 0 9px 1px rgba(201,162,103,0.55);
+  }
+  .xp-bar-fill.track-blue{
+    background: linear-gradient(90deg, var(--habit-blue), #a9c8ff);
+    box-shadow: 0 0 9px 1px rgba(111,163,255,0.55);
+  }
+  .xp-bar-fill.track-green{
+    background: linear-gradient(90deg, var(--habit-green), #bdeed2);
+    box-shadow: 0 0 7px 1px rgba(126,214,165,0.5);
+  }
+  .xp-bar-fill.track-gold.max{
     background: linear-gradient(90deg, #e0c084, var(--accent), #e0c084);
+    background-size: 200% 100%;
+    animation: maxShimmer 3s linear infinite;
+  }
+  .xp-bar-fill.track-blue.max{
+    background: linear-gradient(90deg, #a9c8ff, var(--habit-blue), #a9c8ff);
+    background-size: 200% 100%;
+    animation: maxShimmer 3s linear infinite;
+  }
+  .xp-bar-fill.track-green.max{
+    background: linear-gradient(90deg, #bdeed2, var(--habit-green), #bdeed2);
     background-size: 200% 100%;
     animation: maxShimmer 3s linear infinite;
   }
@@ -376,8 +435,8 @@
   }
   @keyframes levelUpPulse{
     0%{ text-shadow: 0 0 0 rgba(201,162,103,0); }
-    30%{ text-shadow: 0 0 10px rgba(201,162,103,0.9); }
-    100%{ text-shadow: 0 0 0 rgba(201,162,103,0); }
+    30%{ text-shadow: 0 0 14px currentColor; }
+    100%{ text-shadow: 0 0 7px rgba(201,162,103,0.55); }
   }
   .xp-bar-fill.level-up-flash::after{
     content:'';
@@ -388,6 +447,20 @@
   @keyframes barFlash{
     0%{ opacity: 1; }
     100%{ opacity: 0; }
+  }
+
+  /* ---------- PARTICULAS DE NIVEL ---------- */
+  .level-up-particle{
+    position:fixed;
+    width:5px; height:5px;
+    border-radius:50%;
+    pointer-events:none;
+    z-index: 999;
+    animation: particleFloat 900ms ease-out forwards;
+  }
+  @keyframes particleFloat{
+    0%{ transform: translate(0,0) scale(1); opacity: 1; }
+    100%{ transform: translate(var(--px), calc(var(--py) - 46px)) scale(0.25); opacity: 0; }
   }
 
   /* ---------- BOARD COLUMN ---------- */
@@ -407,9 +480,11 @@
   #goals-stack{
     position:absolute;
     top:14px; right:14px;
-    width: 250px;
+    width: 270px;
     display:flex; flex-direction:column; gap:10px;
     z-index: 20;
+    max-height: calc(100% - 28px);
+    overflow-y: auto;
   }
   .goal-panel{
     background: rgba(26,29,38,0.92);
@@ -418,6 +493,7 @@
     border-radius: var(--radius);
     overflow:hidden;
     box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    flex-shrink: 0;
   }
   .goal-toggle{
     width:100%;
@@ -450,24 +526,70 @@
     border-top: 1px solid transparent;
   }
   .goal-panel.open .goal-body{
-    max-height: 220px;
+    max-height: 360px;
     border-top: 1px solid var(--border-soft);
   }
-  .goal-text{
-    padding: 10px 12px 12px 12px;
-    font-size: 12.5px;
-    line-height:1.5;
-    color: var(--text-dim);
-    outline:none;
-    max-height:200px;
-    overflow-y:auto;
-  }
-  .goal-text:empty::before{
-    content: attr(data-placeholder);
-    color: var(--text-faint);
-  }
-  .goal-panel.open .calendar-body{ max-height: 300px; }
+  .goal-panel.open .calendar-body{ max-height: 360px; }
   .calendar-body{ padding: 4px 10px 12px 10px; }
+
+  /* ---------- METAS (checklist) ---------- */
+  .goal-add-row{ display:flex; gap:6px; padding: 10px 12px 8px 12px; }
+  .goal-add-row input{
+    flex:1;
+    background: var(--bg-2);
+    border:1px solid var(--border);
+    color: var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    outline:none;
+  }
+  .goal-add-row input:focus{ border-color: var(--habit-blue); }
+  .goal-add-row button{
+    width:30px;
+    border-radius: 8px;
+    border:1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--habit-blue);
+    font-size: 16px;
+    cursor:pointer;
+  }
+  .goal-add-row button:hover{ border-color: var(--habit-blue); }
+  .goal-items-list{
+    display:flex; flex-direction:column;
+    max-height: 220px;
+    overflow-y:auto;
+    padding: 0 12px 12px 12px;
+  }
+  .goal-item-row{
+    display:flex; align-items:center; gap:8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .goal-item-row:last-child{ border-bottom:none; }
+  .goal-item-text{
+    flex:1;
+    font-size: 12.5px;
+    line-height:1.4;
+    color: var(--text);
+    outline:none;
+  }
+  .goal-item-row.done .goal-item-text{ color: var(--text-faint); text-decoration: line-through; }
+  .goal-item-del{
+    font-size: 12px;
+    color: var(--text-faint);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .goal-item-del:hover{ color: var(--danger); }
+  .goals-empty, .habits-empty{
+    font-size: 11.5px;
+    color: var(--text-faint);
+    font-style: italic;
+    padding: 0 12px 10px 12px;
+  }
+
   .mini-cal-head{
     display:flex; align-items:center; justify-content:space-between;
     padding: 4px 2px 8px 2px;
@@ -495,7 +617,7 @@
   .mini-cal-nav button:hover{ border-color: var(--accent); color: var(--accent); }
   .mini-cal-grid{
     display:grid;
-    grid-template-columns: repeat(7, 1fr),
+    grid-template-columns: repeat(7, 1fr);
     gap: 2px;
   }
   .mini-cal-dow{
@@ -507,6 +629,7 @@
   }
   .mini-cal-day{
     aspect-ratio: 1;
+    width: 100%;
     display:flex; align-items:center; justify-content:center;
     font-size: 11.5px;
     color: var(--text-dim);
@@ -515,11 +638,104 @@
     background:none;
     border:none;
     font-family:'Inter', sans-serif;
+    padding: 0;
   }
   .mini-cal-day:hover{ background: var(--panel-2); color: var(--text); }
   .mini-cal-day.other-month{ color: var(--text-faint); opacity: .45; }
   .mini-cal-day.today{ color: var(--accent); font-weight:600; }
   .mini-cal-day.selected{ background: var(--accent); color: var(--bg); font-weight:600; }
+
+  .astro-line{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: .3px;
+    color: var(--text-dim);
+    text-align:center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-soft);
+    line-height: 1.5;
+  }
+
+  /* ---------- HABITOS (cada uno con su propia barra verde) ---------- */
+  .habits-body{ padding: 10px 12px 12px 12px; }
+  .habit-add-row{ display:flex; gap:6px; margin-bottom:10px; }
+  .habit-add-row input{
+    flex:1;
+    background: var(--bg-2);
+    border:1px solid var(--border);
+    color: var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    outline:none;
+  }
+  .habit-add-row input:focus{ border-color: var(--habit-green); }
+  .habit-add-row button{
+    width:30px;
+    border-radius: 8px;
+    border:1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--habit-green);
+    font-size: 16px;
+    cursor:pointer;
+  }
+  .habit-add-row button:hover{ border-color: var(--habit-green); }
+  .habits-cards{
+    display:flex; flex-direction:column; gap:10px;
+    max-height: 280px;
+    overflow-y:auto;
+  }
+  .habit-card{
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 11px 10px 11px;
+  }
+  .habit-card-head{
+    display:flex; align-items:center; gap:8px;
+    margin-bottom: 7px;
+  }
+  .habit-name{
+    flex:1;
+    font-family:'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight:500;
+    color: var(--text);
+  }
+  .habit-card-del{
+    font-size: 12px;
+    color: var(--text-faint);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .habit-card-del:hover{ color: var(--danger); }
+  .habit-mini-level-row{
+    display:flex; align-items:baseline; gap:6px;
+    margin-bottom: 5px;
+  }
+  .habit-mini-badge{
+    font-family:'Fraunces', serif;
+    font-style: italic;
+    font-weight:600;
+    font-size: 11px;
+  }
+  .habit-mini-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    flex:1;
+  }
+  .habit-mini-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 8.5px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    text-align: right;
+  }
 
   #toolbar{
     position:absolute;
@@ -732,7 +948,10 @@
 
   <header id="page-header">
     <div class="date-block">
-      <div class="eyebrow" id="weekdayLabel">Lunes</div>
+      <div class="eyebrow-row">
+        <div class="eyebrow" id="weekdayLabel">Lunes</div>
+        <div class="clock-inline" id="clockLabel">--:--</div>
+      </div>
       <h1 id="dateTitle">27 <span class="month-part">de Julio</span></h1>
     </div>
     <div id="nav-arrows">
@@ -750,15 +969,30 @@
       </div>
       <div id="todo-list"></div>
       <div class="xp-footer" id="xpFooter">
-        <div class="xp-level-row">
-          <span class="xp-level-badge" id="xpLevelBadge">Nv. 1</span>
-          <span class="xp-level-title" id="xpLevelTitle">Aprendiz</span>
-          <span class="xp-streak" id="xpStreak" title="Racha de días activos">🔥 0</span>
+        <div class="track-block">
+          <div class="xp-level-row">
+            <span class="xp-level-badge badge-gold" id="xpLevelBadge">Nv. 1</span>
+            <span class="xp-level-title" id="xpLevelTitle">Aprendiz</span>
+          </div>
+          <div class="xp-bar-track">
+            <div class="xp-bar-fill track-gold" id="xpBarFill"></div>
+          </div>
+          <div class="xp-meta" id="xpMeta">0 / 80 XP</div>
+          <div class="xp-streak-row">
+            <span class="xp-streak" id="xpStreak" title="Racha de días activos">🔥 0</span>
+            <span class="xp-streak" id="xpMonthStreak" title="Meses activos">📅 0</span>
+          </div>
         </div>
-        <div class="xp-bar-track">
-          <div class="xp-bar-fill" id="xpBarFill"></div>
+        <div class="track-block track-block-goals">
+          <div class="xp-level-row">
+            <span class="xp-level-badge badge-blue" id="goalsLevelBadge">Nv. 1</span>
+            <span class="xp-level-title" id="goalsLevelTitle">Mediano Errante</span>
+          </div>
+          <div class="xp-bar-track">
+            <div class="xp-bar-fill track-blue" id="goalsBarFill"></div>
+          </div>
+          <div class="xp-meta" id="goalsMeta">0 / 150 XP</div>
         </div>
-        <div class="xp-meta" id="xpMeta">0 / 80 XP</div>
       </div>
     </section>
 
@@ -791,7 +1025,11 @@
             <span class="chev">▾</span>
           </button>
           <div class="goal-body">
-            <div class="goal-text" contenteditable="true" data-placeholder="Escribe tus metas de este mes…" id="monthGoalsText"></div>
+            <div class="goal-add-row">
+              <input type="text" id="monthGoalInput" placeholder="Nueva meta del mes…" />
+              <button id="addMonthGoalBtn" title="Agregar meta">+</button>
+            </div>
+            <div id="monthGoalsList" class="goal-items-list"></div>
           </div>
         </div>
         <div class="goal-panel" id="weekPanel">
@@ -800,7 +1038,26 @@
             <span class="chev">▾</span>
           </button>
           <div class="goal-body">
-            <div class="goal-text" contenteditable="true" data-placeholder="Escribe tus metas de esta semana…" id="weekGoalsText"></div>
+            <div class="goal-add-row">
+              <input type="text" id="weekGoalInput" placeholder="Nueva meta de la semana…" />
+              <button id="addWeekGoalBtn" title="Agregar meta">+</button>
+            </div>
+            <div id="weekGoalsList" class="goal-items-list"></div>
+          </div>
+        </div>
+        <div class="goal-panel" id="habitsPanel">
+          <button class="goal-toggle" data-target="habitsPanel">
+            <span>Hábitos</span>
+            <span class="chev">▾</span>
+          </button>
+          <div class="goal-body">
+            <div class="habits-body">
+              <div class="habit-add-row">
+                <input type="text" id="newHabitInput" placeholder="Nuevo hábito…" />
+                <button id="addHabitBtn" title="Agregar hábito">+</button>
+              </div>
+              <div id="habitsList" class="habits-cards"></div>
+            </div>
           </div>
         </div>
         <div class="goal-panel" id="calendarPanel">
@@ -810,6 +1067,7 @@
           </button>
           <div class="goal-body calendar-body">
             <div id="miniCalendar"></div>
+            <div class="astro-line" id="astroLine">Cargando…</div>
           </div>
         </div>
       </div>
@@ -834,7 +1092,7 @@
 <div class="modal-overlay" id="githubModal" hidden>
   <div class="modal-box">
     <h3>Sincronizar con GitHub</h3>
-    <p class="modal-hint">Puedes subir todos tus días, metas mensuales y semanales a tu repositorio, o cargarlos (importarlos) para traerlos a esta sesión.</p>
+    <p class="modal-hint">Puedes subir todos tus días, metas, hábitos y experiencia a tu repositorio, cargarlos desde GitHub, o importar un archivo .json descargado antes.</p>
 
     <label for="ghRepo">Repositorio (usuario/repo)</label>
     <input id="ghRepo" placeholder="tuusuario/tu-repo" autocomplete="off" />
@@ -848,9 +1106,11 @@
     <p class="modal-note">El token necesita permiso de lectura/escritura sobre el repo. Se guardará localmente para tu comodidad, por lo que no tendrás que volver a ingresarlo. Los campos de repositorio y ruta también quedan recordados.</p>
 
     <div id="ghStatus"></div>
+    <input type="file" id="jsonFileInput" accept="application/json" style="display:none" />
 
     <div class="modal-actions">
       <button class="modal-btn ghost" id="ghDownload" title="Descargar sin usar GitHub">Descargar .json</button>
+      <button class="modal-btn" id="ghUploadFile" title="Importar desde un archivo .json de tu computadora">↥ Cargar archivo</button>
       <button class="modal-btn" id="ghLoad" title="Importar datos desde GitHub">↧ Cargar de GitHub</button>
       <button class="modal-btn" id="ghCancel">Cerrar</button>
       <button class="modal-btn primary" id="ghSave">Subir a GitHub</button>
@@ -904,7 +1164,7 @@
     memoryStore[key] = value;
   }
 
-  const pendingSaves = {}; 
+  const pendingSaves = {};
   function scheduleSave(key, value){
     const entry = pendingSaves[key] || (pendingSaves[key] = { timer:null, value:null, writing:Promise.resolve() });
     entry.value = value;
@@ -928,14 +1188,15 @@
   /* ============ STATE ============ */
   let currentDate = new Date();
   currentDate.setHours(0,0,0,0);
-  let miniCalDate = new Date(currentDate); 
-  let dayData = null;     
-  let monthGoals = "";
-  let weekGoals = "";
+  let miniCalDate = new Date(currentDate);
+  let dayData = null;
+  let weekData = null;
+  let monthData = null;
   let tool = "select";
   let penColor = "var(--pen-black)";
-  let selected = new Set();     
-  let strokeNodes = {};         
+  let selected = new Set();
+  let strokeNodes = {};
+  let HABITS_LIST = [];
 
   let undoStack = [];
   let redoStack = [];
@@ -943,7 +1204,12 @@
 
   /* ============ XP / NIVEL ============ */
   const XP_PER_TASK = 10;
+  const GOAL_XP = 25;
+  const HABIT_XP = 12;
   const MAX_LEVEL = 100;
+  const GOALS_MAX_LEVEL = 50;
+  const DISCIPLINE_MAX_LEVEL = 25;
+
   const LEVEL_TITLES = [
     "Aprendiz", "Novato Perseverante", "Escriba Diligente", "Discípulo del Hábito", "Portador de la Pluma",
     "Escudero Disciplinado", "Centinela Constante", "Guardián del Cuaderno", "Soldado de la Rutina", "Caballero del Orden",
@@ -967,102 +1233,356 @@
     "Oráculo Eterno", "Mítico Ancestral", "Leyenda Viviente", "Inmortal", "Leyenda Eterna"
   ];
 
-  let xpState = { totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null };
+  const GOALS_TITLES = [
+    "Mediano Errante", "Guardián de la Comarca", "Explorador de los Caminos Verdes", "Guardabosques del Norte",
+    "Centinela de Bree", "Hombre de las Tierras Ásperas", "Soldado de Gondor", "Caballero de Rohan",
+    "Jinete de la Marca", "Escudo de la Ciudad Blanca", "Elfo Silvano", "Explorador del Bosque Verde",
+    "Guardián de Lothlórien", "Arquero de la Casa Dorada", "Alto Elfo", "Elfo de la Última Alianza",
+    "Elfo Oscuro Iniciado", "Asesino de las Sombras", "Hechicero Sombrío", "Señor de los Elfos Oscuros",
+    "Enano de las Minas", "Guardián de la Montaña", "Señor de la Forja de Piedra", "Rey bajo la Montaña",
+    "Mago Gris", "Mago Itinerante", "Mago Blanco", "Istari Ancestral",
+    "Portador de la Llama Secreta", "Espíritu Encarnado de Arda", "Semidiós del Oeste", "Guardián del Anillo Perdido",
+    "Custodio de los Reinos Élficos", "Soberano de las Tierras Libres", "Eco de los Días Antiguos", "Portador de la Estrella Vespertina",
+    "Leyenda de la Tierra Media", "Vala del Amanecer", "Soberano de Arda", "Inmortal de Valinor"
+  ];
+
+  const DISCIPLINE_TITLES = [
+    "Iniciado en Hábitos", "Aprendiz Constante", "Practicante Disciplinado", "Guardián de la Rutina",
+    "Adepto del Autocontrol", "Ejecutor Metódico", "Vigía de sí Mismo", "Monje del Orden",
+    "Custodio del Ritual", "Maestro de Hábitos", "Sabio de la Constancia", "Centinela Interior",
+    "Arquitecto de sí Mismo", "Voluntad de Hierro", "Espíritu Inquebrantable", "Guardián Eterno del Hábito",
+    "Maestro Supremo de la Disciplina"
+  ];
+
+  function defaultXpState(){
+    return {
+      totalXP: 0,
+      streak: 0, bestStreak: 0, lastActiveDate: null,
+      monthStreak: 0, bestMonthStreak: 0, lastActiveMonthKey: null,
+      goalsXP: 0,
+      habits: {}
+    };
+  }
+  let xpState = defaultXpState();
 
   async function loadXP(){
     const raw = await storeGet("bj:xp");
-    xpState = raw
-      ? Object.assign({ totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null }, JSON.parse(raw))
-      : { totalXP: 0, streak: 0, bestStreak: 0, lastActiveDate: null };
+    if(!raw){ xpState = defaultXpState(); return; }
+    const parsed = JSON.parse(raw);
+    xpState = Object.assign(defaultXpState(), parsed);
+    // Migración desde versiones anteriores (la barra azul antes se llamaba habitsXP/lineageXP)
+    if(typeof parsed.goalsXP !== "number"){
+      xpState.goalsXP = (parsed.habitsXP || parsed.lineageXP || 0);
+    }
+    if(!parsed.habits || typeof parsed.habits !== "object"){
+      xpState.habits = {};
+    }
   }
   function saveXP(){
     scheduleSave("bj:xp", JSON.stringify(xpState));
   }
-  function levelThreshold(level){
-    return 80 + (level - 1) * 35;
-  }
-  function computeLevelInfo(totalXP){
+
+  function levelThreshold(level){ return 80 + (level - 1) * 35; }
+  function goalsLevelThreshold(level){ return 150 + (level - 1) * 80; }
+  function disciplineLevelThreshold(level){ return 40 + (level - 1) * 18; }
+
+  function levelInfoFor(totalXP, thresholdFn, titles, maxLevel){
     let level = 1;
     let remaining = Math.max(0, totalXP);
-    while(level < MAX_LEVEL){
-      const needed = levelThreshold(level);
+    while(level < maxLevel){
+      const needed = thresholdFn(level);
       if(remaining < needed) break;
       remaining -= needed;
       level++;
     }
-    if(level >= MAX_LEVEL){
-      return { level: MAX_LEVEL, xpIntoLevel: remaining, xpForNext: null, maxed: true };
+    if(level >= maxLevel){
+      return { level: maxLevel, xpIntoLevel: remaining, xpForNext: null, maxed: true, title: titles[Math.min(maxLevel-1, titles.length-1)] };
     }
-    return { level, xpIntoLevel: remaining, xpForNext: levelThreshold(level), maxed: false };
+    return { level, xpIntoLevel: remaining, xpForNext: thresholdFn(level), maxed: false, title: titles[Math.min(level-1, titles.length-1)] };
   }
-  function levelTitle(level){
-    return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
-  }
-  function renderXP(){
-    const info = computeLevelInfo(xpState.totalXP);
-    document.getElementById("xpLevelBadge").textContent = "Nv. " + info.level;
-    document.getElementById("xpLevelTitle").textContent = levelTitle(info.level);
 
-    const fill = document.getElementById("xpBarFill");
-    const meta = document.getElementById("xpMeta");
+  function renderTrack(field, badgeId, titleId, fillId, metaId, thresholdFn, titles, maxLevel){
+    const info = levelInfoFor(xpState[field], thresholdFn, titles, maxLevel);
+    document.getElementById(badgeId).textContent = "Nv. " + info.level;
+    document.getElementById(titleId).textContent = info.title;
+    const fill = document.getElementById(fillId);
+    const meta = document.getElementById(metaId);
     if(info.maxed){
       fill.style.width = "100%";
       fill.classList.add("max");
-      meta.textContent = xpState.totalXP + " XP · nivel máximo";
+      meta.textContent = xpState[field] + " XP · nivel máximo";
     } else {
       fill.classList.remove("max");
       fill.style.width = Math.min(100, Math.round((info.xpIntoLevel / info.xpForNext) * 100)) + "%";
       meta.textContent = info.xpIntoLevel + " / " + info.xpForNext + " XP";
     }
-
-    const streakEl = document.getElementById("xpStreak");
-    streakEl.textContent = "🔥 " + xpState.streak;
-    streakEl.classList.toggle("active", xpState.streak > 0);
-    streakEl.title = xpState.streak > 0
-      ? "Racha de " + xpState.streak + " día(s) · mejor racha: " + xpState.bestStreak
-      : "Completá una tarea hoy para empezar una racha";
   }
-  function bumpStreak(){
-    const today = dateKey(new Date());
-    if(xpState.lastActiveDate === today) return;
-    const yesterday = dateKey(addDays(new Date(), -1));
-    xpState.streak = (xpState.lastActiveDate === yesterday) ? xpState.streak + 1 : 1;
-    xpState.bestStreak = Math.max(xpState.bestStreak, xpState.streak);
-    xpState.lastActiveDate = today;
-  }
-  function addXP(amount){
-    const before = computeLevelInfo(xpState.totalXP).level;
-    xpState.totalXP = Math.max(0, xpState.totalXP + amount);
-    if(amount > 0) bumpStreak();
-    saveXP();
-    renderXP();
-    const after = computeLevelInfo(xpState.totalXP).level;
-    if(amount > 0 && after > before){
-      const badge = document.getElementById("xpLevelBadge");
-      badge.classList.remove("level-up");
-      void badge.offsetWidth; 
-      badge.classList.add("level-up");
 
-      const fill = document.getElementById("xpBarFill");
+  /* ---- Partículas al subir de nivel ---- */
+  function spawnLevelUpParticles(anchorId, colorHex){
+    const anchor = document.getElementById(anchorId);
+    if(!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const count = 14;
+    for(let i=0;i<count;i++){
+      const p = document.createElement("div");
+      p.className = "level-up-particle";
+      const angle = (Math.PI*2*i/count) + (Math.random()*0.6 - 0.3);
+      const dist = 18 + Math.random()*28;
+      const px = Math.cos(angle)*dist;
+      const py = Math.sin(angle)*dist;
+      p.style.left = cx + "px";
+      p.style.top = cy + "px";
+      p.style.background = colorHex;
+      p.style.boxShadow = "0 0 6px " + colorHex;
+      p.style.setProperty("--px", px + "px");
+      p.style.setProperty("--py", py + "px");
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 950);
+    }
+  }
+
+  function flashLevelUp(badgeId, fillId, colorHex){
+    const badge = document.getElementById(badgeId);
+    if(!badge) return;
+    badge.classList.remove("level-up");
+    void badge.offsetWidth;
+    badge.classList.add("level-up");
+    const fill = document.getElementById(fillId);
+    if(fill){
       fill.classList.remove("level-up-flash");
       void fill.offsetWidth;
       fill.classList.add("level-up-flash");
     }
+    spawnLevelUpParticles(badgeId, colorHex);
   }
+
+  function renderStreak(){
+    const streakEl = document.getElementById("xpStreak");
+    streakEl.textContent = "🔥 " + xpState.streak;
+    streakEl.classList.toggle("active", xpState.streak > 0);
+    streakEl.title = xpState.streak > 0
+      ? "Racha de " + xpState.streak + " día(s) activos · mejor racha: " + xpState.bestStreak
+      : "Completá una tarea hoy para empezar tu racha";
+
+    const monthEl = document.getElementById("xpMonthStreak");
+    monthEl.textContent = "📅 " + xpState.monthStreak;
+    monthEl.classList.toggle("active", xpState.monthStreak > 0);
+    monthEl.title = xpState.monthStreak > 0
+      ? xpState.monthStreak + " mes(es) activos · mejor racha: " + xpState.bestMonthStreak
+      : "Racha de meses activos";
+  }
+
+  function bumpStreak(){
+    const today = dateKey(new Date());
+    if(xpState.lastActiveDate !== today){
+      xpState.streak = xpState.streak + 1;
+      xpState.bestStreak = Math.max(xpState.bestStreak, xpState.streak);
+      xpState.lastActiveDate = today;
+    }
+    const mk = monthKey(new Date());
+    if(xpState.lastActiveMonthKey !== mk){
+      xpState.monthStreak = xpState.monthStreak + 1;
+      xpState.bestMonthStreak = Math.max(xpState.bestMonthStreak, xpState.monthStreak);
+      xpState.lastActiveMonthKey = mk;
+    }
+  }
+
+  // El XP nunca se resta: estas funciones solo suman. Los checkboxes controlan
+  // (vía flags "otorgado") que cada logro sume una única vez.
+  function addXP(amount){
+    const before = levelInfoFor(xpState.totalXP, levelThreshold, LEVEL_TITLES, MAX_LEVEL).level;
+    xpState.totalXP = xpState.totalXP + amount;
+    bumpStreak();
+    saveXP();
+    renderTrack('totalXP', 'xpLevelBadge', 'xpLevelTitle', 'xpBarFill', 'xpMeta', levelThreshold, LEVEL_TITLES, MAX_LEVEL);
+    renderStreak();
+    const after = levelInfoFor(xpState.totalXP, levelThreshold, LEVEL_TITLES, MAX_LEVEL).level;
+    if(after > before) flashLevelUp('xpLevelBadge', 'xpBarFill', '#c9a267');
+  }
+
+  function addGoalXP(amount){
+    const before = levelInfoFor(xpState.goalsXP, goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL).level;
+    xpState.goalsXP = xpState.goalsXP + amount;
+    saveXP();
+    renderTrack('goalsXP', 'goalsLevelBadge', 'goalsLevelTitle', 'goalsBarFill', 'goalsMeta', goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL);
+    const after = levelInfoFor(xpState.goalsXP, goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL).level;
+    if(after > before) flashLevelUp('goalsLevelBadge', 'goalsBarFill', '#6fa3ff');
+  }
+
+  // Devuelve true si el hábito subió de nivel (el flash se dispara aparte,
+  // después de volver a pintar sus tarjetas).
+  function awardHabitXP(habitId, amount){
+    if(!xpState.habits) xpState.habits = {};
+    const cur = xpState.habits[habitId] || 0;
+    const before = levelInfoFor(cur, disciplineLevelThreshold, DISCIPLINE_TITLES, DISCIPLINE_MAX_LEVEL).level;
+    xpState.habits[habitId] = cur + amount;
+    saveXP();
+    const after = levelInfoFor(xpState.habits[habitId], disciplineLevelThreshold, DISCIPLINE_TITLES, DISCIPLINE_MAX_LEVEL).level;
+    return after > before;
+  }
+
+  function renderAllXP(){
+    renderTrack('totalXP', 'xpLevelBadge', 'xpLevelTitle', 'xpBarFill', 'xpMeta', levelThreshold, LEVEL_TITLES, MAX_LEVEL);
+    renderTrack('goalsXP', 'goalsLevelBadge', 'goalsLevelTitle', 'goalsBarFill', 'goalsMeta', goalsLevelThreshold, GOALS_TITLES, GOALS_MAX_LEVEL);
+    renderStreak();
+  }
+
   async function initXP(){
     await loadXP();
-    renderXP();
+    renderAllXP();
   }
+
+  /* ============ HABITOS (definiciones globales + barra propia c/u) ============ */
+  async function loadHabits(){
+    const raw = await storeGet("bj:habits");
+    HABITS_LIST = raw ? JSON.parse(raw) : [];
+  }
+  function saveHabits(){
+    scheduleSave("bj:habits", JSON.stringify(HABITS_LIST));
+  }
+
+  function renderHabits(){
+    const list = document.getElementById("habitsList");
+    list.innerHTML = "";
+    if(!dayData.habits) dayData.habits = {};
+    if(!dayData.habitsAwarded) dayData.habitsAwarded = {};
+    if(!xpState.habits) xpState.habits = {};
+
+    if(HABITS_LIST.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "habits-empty";
+      empty.textContent = "Todavía no agregaste hábitos.";
+      list.appendChild(empty);
+      return;
+    }
+
+    HABITS_LIST.forEach(h => {
+      const card = document.createElement("div");
+      card.className = "habit-card";
+
+      const head = document.createElement("div");
+      head.className = "habit-card-head";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "mini-checkbox";
+      cb.checked = !!dayData.habits[h.id];
+      cb.addEventListener("change", () => {
+        const nowDone = cb.checked;
+        dayData.habits[h.id] = nowDone;
+        let leveledUp = false;
+        if(nowDone && !dayData.habitsAwarded[h.id]){
+          dayData.habitsAwarded[h.id] = true;
+          leveledUp = awardHabitXP(h.id, HABIT_XP);
+        }
+        saveDay();
+        renderHabits();
+        if(leveledUp) flashLevelUp("habit-badge-"+h.id, "habit-fill-"+h.id, "#7ed6a5");
+      });
+      head.appendChild(cb);
+
+      const name = document.createElement("span");
+      name.className = "habit-name";
+      name.textContent = h.name;
+      head.appendChild(name);
+
+      const del = document.createElement("span");
+      del.className = "habit-card-del";
+      del.textContent = "×";
+      del.title = "Eliminar hábito";
+      del.addEventListener("click", () => {
+        HABITS_LIST = HABITS_LIST.filter(x => x.id !== h.id);
+        saveHabits();
+        renderHabits();
+      });
+      head.appendChild(del);
+
+      card.appendChild(head);
+
+      const habitXp = xpState.habits[h.id] || 0;
+      const info = levelInfoFor(habitXp, disciplineLevelThreshold, DISCIPLINE_TITLES, DISCIPLINE_MAX_LEVEL);
+
+      const levelRow = document.createElement("div");
+      levelRow.className = "habit-mini-level-row";
+      const badge = document.createElement("span");
+      badge.className = "habit-mini-badge badge-green";
+      badge.id = "habit-badge-"+h.id;
+      badge.textContent = "Nv. " + info.level;
+      const title = document.createElement("span");
+      title.className = "habit-mini-title";
+      title.id = "habit-title-"+h.id;
+      title.textContent = info.title;
+      levelRow.appendChild(badge);
+      levelRow.appendChild(title);
+      card.appendChild(levelRow);
+
+      const barTrack = document.createElement("div");
+      barTrack.className = "xp-bar-track small";
+      const fill = document.createElement("div");
+      fill.className = "xp-bar-fill track-green";
+      fill.id = "habit-fill-"+h.id;
+      if(info.maxed){
+        fill.style.width = "100%";
+        fill.classList.add("max");
+      } else {
+        fill.style.width = Math.min(100, Math.round((info.xpIntoLevel/info.xpForNext)*100)) + "%";
+      }
+      barTrack.appendChild(fill);
+      card.appendChild(barTrack);
+
+      const meta = document.createElement("div");
+      meta.className = "habit-mini-meta";
+      meta.id = "habit-meta-"+h.id;
+      meta.textContent = info.maxed ? (habitXp + " XP · nivel máximo") : (info.xpIntoLevel + " / " + info.xpForNext + " XP");
+      card.appendChild(meta);
+
+      list.appendChild(card);
+    });
+  }
+
+  function addHabitFromInput(){
+    const input = document.getElementById("newHabitInput");
+    const name = input.value.trim();
+    if(!name) return;
+    HABITS_LIST.push({ id: "h_"+Date.now()+"_"+Math.floor(Math.random()*1000), name });
+    saveHabits();
+    input.value = "";
+    renderHabits();
+  }
+  document.getElementById("addHabitBtn").addEventListener("click", addHabitFromInput);
+  document.getElementById("newHabitInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); addHabitFromInput(); }
+  });
 
   /* ============ DEFAULTS ============ */
   function defaultDay(){
     const tasks = [];
-    for(let i=0;i<17;i++) tasks.push({done:false, text:""});
+    for(let i=0;i<17;i++) tasks.push({done:false, text:"", xpAwarded:false});
     return {
       startHour: "10:00",
       tasks: tasks,
-      whiteboard: { scale: 1, tx: 40, ty: 40, strokes: [], elements: [] }
+      habits: {},
+      habitsAwarded: {}
     };
+  }
+  function defaultWhiteboard(){
+    return { scale: 1, tx: 40, ty: 40, strokes: [], elements: [] };
+  }
+  function defaultWeek(){
+    return { goals: [], whiteboard: defaultWhiteboard() };
+  }
+  function defaultMonth(){
+    return { goals: [] };
+  }
+
+  function migrateGoals(container){
+    if(!Array.isArray(container.goals)){
+      const legacyText = (typeof container.goals === "string") ? container.goals.trim() : "";
+      container.goals = legacyText ? [{ id: "legacy_"+Date.now(), text: legacyText, done:false, xpAwarded:false }] : [];
+    }
   }
 
   function computeHourLabel(startHourStr, index){
@@ -1086,22 +1606,63 @@
     ]);
 
     dayData = rawDay ? JSON.parse(rawDay) : defaultDay();
-    if(!dayData.whiteboard) dayData.whiteboard = { scale:1, tx:40, ty:40, strokes:[], elements:[] };
-    if(!dayData.tasks || dayData.tasks.length !== 17) dayData = defaultDay();
+    if(!dayData.tasks || dayData.tasks.length !== 17){
+      const preservedHabits = dayData.habits;
+      const preservedAwarded = dayData.habitsAwarded;
+      const preservedStart = dayData.startHour;
+      dayData = defaultDay();
+      if(preservedStart) dayData.startHour = preservedStart;
+      if(preservedHabits) dayData.habits = preservedHabits;
+      if(preservedAwarded) dayData.habitsAwarded = preservedAwarded;
+    }
+    // Migración: tareas de versiones previas sin la marca xpAwarded.
+    // Si ya estaban marcadas como hechas, se asume que su XP ya había sido
+    // otorgado bajo el sistema anterior (para no duplicar ni perder XP).
+    dayData.tasks.forEach(t => {
+      if(typeof t.xpAwarded !== "boolean") t.xpAwarded = !!t.done;
+    });
+    if(!dayData.habits) dayData.habits = {};
+    if(!dayData.habitsAwarded){
+      dayData.habitsAwarded = {};
+      Object.keys(dayData.habits).forEach(id => { dayData.habitsAwarded[id] = !!dayData.habits[id]; });
+    }
 
-    monthGoals = rawMonth ? JSON.parse(rawMonth).goals : "";
-    weekGoals = rawWeek ? JSON.parse(rawWeek).goals : "";
+    weekData = rawWeek ? JSON.parse(rawWeek) : defaultWeek();
+    if(!weekData.whiteboard) weekData.whiteboard = defaultWhiteboard();
+    migrateGoals(weekData);
+
+    monthData = rawMonth ? JSON.parse(rawMonth) : defaultMonth();
+    migrateGoals(monthData);
+
+    // Migración: si el día traía una pizarra vieja (formato anterior por día) y la
+    // semana todavía no tiene contenido, se traslada para no perder lo dibujado.
+    if(rawDay){
+      const legacy = JSON.parse(rawDay);
+      if(legacy.whiteboard && weekData.whiteboard.strokes.length === 0 && weekData.whiteboard.elements.length === 0){
+        weekData.whiteboard = legacy.whiteboard;
+        saveWeek();
+      }
+    }
+    if(dayData.whiteboard) delete dayData.whiteboard;
   }
 
   function saveDay(){
     scheduleSave("bj:day:"+dateKey(currentDate), JSON.stringify(dayData));
   }
   function saveMonth(){
-    scheduleSave("bj:month:"+monthKey(currentDate), JSON.stringify({goals: monthGoals}));
+    scheduleSave("bj:month:"+monthKey(currentDate), JSON.stringify(monthData));
   }
   function saveWeek(){
-    scheduleSave("bj:week:"+weekKey(currentDate), JSON.stringify({goals: weekGoals}));
+    scheduleSave("bj:week:"+weekKey(currentDate), JSON.stringify(weekData));
   }
+
+  /* ============ RELOJ ============ */
+  function updateClock(){
+    const now = new Date();
+    document.getElementById("clockLabel").textContent = pad(now.getHours()) + ":" + pad(now.getMinutes());
+  }
+  updateClock();
+  setInterval(updateClock, 15000);
 
   /* ============ RENDER: HEADER ============ */
   function renderHeader(){
@@ -1145,8 +1706,11 @@
       cb.addEventListener("change", () => {
         task.done = cb.checked;
         row.classList.toggle("done", cb.checked);
+        if(cb.checked && !task.xpAwarded){
+          task.xpAwarded = true;
+          addXP(XP_PER_TASK);
+        }
         saveDay();
-        addXP(cb.checked ? XP_PER_TASK : -XP_PER_TASK);
       });
       check.appendChild(cb);
 
@@ -1173,12 +1737,65 @@
     renderTodo();
   });
 
-  /* ============ RENDER: GOALS ============ */
+  /* ============ RENDER: METAS (checklist) ============ */
+  function renderGoalList(containerId, goalsArray, saveFn, emptyText){
+    const list = document.getElementById(containerId);
+    list.innerHTML = "";
+    if(goalsArray.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "goals-empty";
+      empty.textContent = emptyText;
+      list.appendChild(empty);
+      return;
+    }
+    goalsArray.forEach(g => {
+      const row = document.createElement("div");
+      row.className = "goal-item-row" + (g.done ? " done" : "");
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "mini-checkbox";
+      cb.checked = g.done;
+      cb.addEventListener("change", () => {
+        g.done = cb.checked;
+        row.classList.toggle("done", cb.checked);
+        if(cb.checked && !g.xpAwarded){
+          g.xpAwarded = true;
+          addGoalXP(GOAL_XP);
+        }
+        saveFn();
+      });
+
+      const text = document.createElement("div");
+      text.className = "goal-item-text";
+      text.contentEditable = "true";
+      text.textContent = g.text;
+      text.addEventListener("input", () => {
+        g.text = text.textContent;
+        saveFn();
+      });
+
+      const del = document.createElement("span");
+      del.className = "goal-item-del";
+      del.textContent = "×";
+      del.title = "Eliminar meta";
+      del.addEventListener("click", () => {
+        const idx = goalsArray.indexOf(g);
+        if(idx > -1) goalsArray.splice(idx, 1);
+        saveFn();
+        renderGoalList(containerId, goalsArray, saveFn, emptyText);
+      });
+
+      row.appendChild(cb);
+      row.appendChild(text);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
   function renderGoals(){
-    const monthText = document.getElementById("monthGoalsText");
-    const weekText = document.getElementById("weekGoalsText");
-    monthText.textContent = monthGoals;
-    weekText.textContent = weekGoals;
+    renderGoalList("monthGoalsList", monthData.goals, saveMonth, "Todavía no hay metas del mes.");
+    renderGoalList("weekGoalsList", weekData.goals, saveWeek, "Todavía no hay metas de la semana.");
 
     const left = daysInMonth(currentDate) - currentDate.getDate();
     const badge = document.getElementById("monthReminder");
@@ -1190,13 +1807,32 @@
     }
   }
 
-  document.getElementById("monthGoalsText").addEventListener("input", (e) => {
-    monthGoals = e.target.textContent;
+  function addMonthGoalFromInput(){
+    const input = document.getElementById("monthGoalInput");
+    const text = input.value.trim();
+    if(!text) return;
+    monthData.goals.push({ id: "mg_"+Date.now()+"_"+Math.floor(Math.random()*1000), text, done:false, xpAwarded:false });
     saveMonth();
-  });
-  document.getElementById("weekGoalsText").addEventListener("input", (e) => {
-    weekGoals = e.target.textContent;
+    input.value = "";
+    renderGoalList("monthGoalsList", monthData.goals, saveMonth, "Todavía no hay metas del mes.");
+  }
+  function addWeekGoalFromInput(){
+    const input = document.getElementById("weekGoalInput");
+    const text = input.value.trim();
+    if(!text) return;
+    weekData.goals.push({ id: "wg_"+Date.now()+"_"+Math.floor(Math.random()*1000), text, done:false, xpAwarded:false });
     saveWeek();
+    input.value = "";
+    renderGoalList("weekGoalsList", weekData.goals, saveWeek, "Todavía no hay metas de la semana.");
+  }
+
+  document.getElementById("addMonthGoalBtn").addEventListener("click", addMonthGoalFromInput);
+  document.getElementById("monthGoalInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); addMonthGoalFromInput(); }
+  });
+  document.getElementById("addWeekGoalBtn").addEventListener("click", addWeekGoalFromInput);
+  document.getElementById("weekGoalInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); addWeekGoalFromInput(); }
   });
 
   document.querySelectorAll(".goal-toggle").forEach(btn => {
@@ -1205,21 +1841,21 @@
     });
   });
 
-  /* ============ WHITEBOARD ============ */
+  /* ============ WHITEBOARD (por semana) ============ */
   const viewport = document.getElementById("whiteboard-viewport");
   const canvas = document.getElementById("whiteboard-canvas");
   const svg = document.getElementById("strokes-svg");
   const elLayer = document.getElementById("elements-layer");
 
   function applyTransform(){
-    const wb = dayData.whiteboard;
+    const wb = weekData.whiteboard;
     canvas.style.transform = "translate(" + wb.tx + "px," + wb.ty + "px) scale(" + wb.scale + ")";
     document.getElementById("zoomLabel").textContent = Math.round(wb.scale*100) + "%";
   }
 
   function pageToCanvas(pageX, pageY){
     const rect = viewport.getBoundingClientRect();
-    const wb = dayData.whiteboard;
+    const wb = weekData.whiteboard;
     return {
       x: (pageX - rect.left - wb.tx) / wb.scale,
       y: (pageY - rect.top - wb.ty) / wb.scale
@@ -1229,7 +1865,7 @@
   const SVG_NS = "http://www.w3.org/2000/svg";
 
   function snapshotWhiteboard(){
-    return JSON.stringify(dayData.whiteboard);
+    return JSON.stringify(weekData.whiteboard);
   }
 
   function pushUndo(preSnapshot){
@@ -1252,10 +1888,10 @@
     const current = snapshotWhiteboard();
     const prev = undoStack.pop();
     redoStack.push(current);
-    dayData.whiteboard = JSON.parse(prev);
+    weekData.whiteboard = JSON.parse(prev);
     clearSelection();
     renderWhiteboard();
-    saveDay();
+    saveWeek();
     updateUndoRedoButtons();
   }
 
@@ -1264,10 +1900,10 @@
     const current = snapshotWhiteboard();
     const next = redoStack.pop();
     undoStack.push(current);
-    dayData.whiteboard = JSON.parse(next);
+    weekData.whiteboard = JSON.parse(next);
     clearSelection();
     renderWhiteboard();
-    saveDay();
+    saveWeek();
     updateUndoRedoButtons();
   }
 
@@ -1275,14 +1911,14 @@
     applyTransform();
     renderStrokes();
     elLayer.innerHTML = "";
-    dayData.whiteboard.elements.forEach(el => renderElement(el));
+    weekData.whiteboard.elements.forEach(el => renderElement(el));
     updateSelectionVisuals();
   }
 
   function renderStrokes(){
     svg.innerHTML = "";
     strokeNodes = {};
-    dayData.whiteboard.strokes.forEach(s => {
+    weekData.whiteboard.strokes.forEach(s => {
       const d = pointsToPath(s.points);
 
       const hit = document.createElementNS(SVG_NS, "path");
@@ -1335,16 +1971,16 @@
       editable.addEventListener("focus", () => { preEditSnapshot = snapshotWhiteboard(); });
       editable.addEventListener("input", () => {
         el.content = editable.textContent;
-        saveDay();
-        void editable.offsetHeight; 
+        saveWeek();
+        void editable.offsetHeight;
       });
       editable.addEventListener("blur", () => {
         const emptied = !editable.textContent.trim();
         if(emptied){
-          dayData.whiteboard.elements = dayData.whiteboard.elements.filter(e => e.id !== el.id);
+          weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
           selected.delete(el.id);
           renderWhiteboard();
-          saveDay();
+          saveWeek();
         }
         if(preEditSnapshot !== null){
           const after = snapshotWhiteboard();
@@ -1375,10 +2011,10 @@
     del.addEventListener("mousedown", (ev) => {
       ev.stopPropagation();
       pushUndo();
-      dayData.whiteboard.elements = dayData.whiteboard.elements.filter(e => e.id !== el.id);
+      weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
       selected.delete(el.id);
       renderWhiteboard();
-      saveDay();
+      saveWeek();
     });
     node.appendChild(del);
 
@@ -1437,19 +2073,19 @@
 
   function startDragSelected(ev){
     if(selected.size === 0) return;
-    const wb = dayData.whiteboard;
+    const wb = weekData.whiteboard;
     const startPage = { x: ev.clientX, y: ev.clientY };
     const preDragSnapshot = snapshotWhiteboard();
 
     const elSnapshots = [];
     const strokeSnapshots = [];
     selected.forEach(id => {
-      const elObj = dayData.whiteboard.elements.find(e => e.id === id);
+      const elObj = weekData.whiteboard.elements.find(e => e.id === id);
       if(elObj){
         elSnapshots.push({ elObj, x: elObj.x, y: elObj.y, node: elLayer.querySelector('[data-id="'+id+'"]') });
         return;
       }
-      const strokeObj = dayData.whiteboard.strokes.find(s => s.id === id);
+      const strokeObj = weekData.whiteboard.strokes.find(s => s.id === id);
       if(strokeObj){
         strokeSnapshots.push({ strokeObj, points: strokeObj.points.map(p => ({x:p.x, y:p.y})) });
       }
@@ -1479,7 +2115,7 @@
     function onUp(){
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
-      if(moved){ pushUndo(preDragSnapshot); saveDay(); }
+      if(moved){ pushUndo(preDragSnapshot); saveWeek(); }
     }
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
@@ -1507,15 +2143,15 @@
   function addElement(type, x, y, content){
     pushUndo();
     const el = { id: "el_"+Date.now()+"_"+Math.floor(Math.random()*1000), type, x, y, content };
-    dayData.whiteboard.elements.push(el);
+    weekData.whiteboard.elements.push(el);
     renderElement(el);
-    saveDay();
+    saveWeek();
     return el;
   }
 
   viewport.addEventListener("wheel", (e) => {
     e.preventDefault();
-    const wb = dayData.whiteboard;
+    const wb = weekData.whiteboard;
     const rect = viewport.getBoundingClientRect();
     const cursorX = e.clientX - rect.left;
     const cursorY = e.clientY - rect.top;
@@ -1529,7 +2165,7 @@
     wb.ty = cursorY - canvasPt.y * newScale;
     wb.scale = newScale;
     applyTransform();
-    saveDay();
+    saveWeek();
   }, { passive:false });
 
   let isPointerDown = false;
@@ -1575,7 +2211,7 @@
     } else {
       isPanning = true;
       viewport.classList.add("panning");
-      panStart = { x: e.clientX, y: e.clientY, tx: dayData.whiteboard.tx, ty: dayData.whiteboard.ty };
+      panStart = { x: e.clientX, y: e.clientY, tx: weekData.whiteboard.tx, ty: weekData.whiteboard.ty };
     }
   });
 
@@ -1607,8 +2243,8 @@
     } else if(isPanning && panStart){
       const dx = e.clientX - panStart.x;
       const dy = e.clientY - panStart.y;
-      dayData.whiteboard.tx = panStart.tx + dx;
-      dayData.whiteboard.ty = panStart.ty + dy;
+      weekData.whiteboard.tx = panStart.tx + dx;
+      weekData.whiteboard.ty = panStart.ty + dy;
       applyTransform();
     }
   });
@@ -1633,12 +2269,12 @@
 
     if(isDrawing && currentStrokePoints.length > 1){
       if(preStrokeSnapshot !== null) pushUndo(preStrokeSnapshot);
-      dayData.whiteboard.strokes.push({
+      weekData.whiteboard.strokes.push({
         id: "st_"+Date.now()+"_"+Math.floor(Math.random()*1000),
         color: penColor.startsWith("var(") ? getComputedColor(penColor) : penColor,
         points: currentStrokePoints.slice()
       });
-      saveDay();
+      saveWeek();
       if(liveSvgPath){ liveSvgPath.remove(); liveSvgPath = null; }
       renderWhiteboard();
     } else if(liveSvgPath){
@@ -1646,7 +2282,7 @@
     }
     isDrawing = false;
     isPointerDown = false;
-    if(isPanning) saveDay();
+    if(isPanning) saveWeek();
     isPanning = false;
     viewport.classList.remove("panning");
     currentStrokePoints = [];
@@ -1715,11 +2351,11 @@
     if(e.key.toLowerCase() === "t"){ setTool("text"); }
     if((e.key === "Delete" || e.key === "Backspace") && selected.size > 0){
       pushUndo();
-      dayData.whiteboard.elements = dayData.whiteboard.elements.filter(el => !selected.has(el.id));
-      dayData.whiteboard.strokes = dayData.whiteboard.strokes.filter(s => !selected.has(s.id));
+      weekData.whiteboard.elements = weekData.whiteboard.elements.filter(el => !selected.has(el.id));
+      weekData.whiteboard.strokes = weekData.whiteboard.strokes.filter(s => !selected.has(s.id));
       clearSelection();
       renderWhiteboard();
-      saveDay();
+      saveWeek();
     }
   });
 
@@ -1817,7 +2453,7 @@
     const year = miniCalDate.getFullYear();
     const month = miniCalDate.getMonth();
     const firstOfMonth = new Date(year, month, 1);
-    const startOffset = firstOfMonth.getDay(); 
+    const startOffset = firstOfMonth.getDay();
     const totalDays = daysInMonth(firstOfMonth);
     const today = new Date(); today.setHours(0,0,0,0);
 
@@ -1835,6 +2471,80 @@
       if(i >= startOffset + totalDays - 1 && (i+1) % 7 === 0) break;
     }
     root.appendChild(grid);
+  }
+
+  /* ============ CLIMA / LUNA / SOL ============ */
+  const astroCache = {};
+  let cachedCoords = null;
+  let geoTried = false;
+
+  function getCoordsOnce(){
+    return new Promise((resolve) => {
+      if(cachedCoords){ resolve(cachedCoords); return; }
+      if(geoTried){ resolve(null); return; }
+      geoTried = true;
+      if(!navigator.geolocation){ resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { cachedCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude }; resolve(cachedCoords); },
+        () => resolve(null),
+        { timeout: 6000 }
+      );
+    });
+  }
+
+  function computeMoon(date){
+    const knownNewMoon = Date.UTC(2000,0,6,18,14,0);
+    const synodicMonth = 29.53058867;
+    const diffDays = (date.getTime() - knownNewMoon) / 86400000;
+    let phase = (diffDays % synodicMonth) / synodicMonth;
+    if(phase < 0) phase += 1;
+    const illumination = Math.round(((1 - Math.cos(2*Math.PI*phase)) / 2) * 100);
+    return illumination;
+  }
+
+  function formatISOTime(iso){
+    const d = new Date(iso);
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  async function fetchDayAstro(date){
+    const key = dateKey(date);
+    if(astroCache[key]) return astroCache[key];
+    const result = { moonIllum: computeMoon(date) };
+    try{
+      const coords = await getCoordsOnce();
+      if(coords){
+        const url = "https://api.open-meteo.com/v1/forecast?latitude="+coords.lat+"&longitude="+coords.lon+
+          "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&start_date="+key+"&end_date="+key;
+        const res = await fetch(url);
+        if(res.ok){
+          const data = await res.json();
+          if(data.daily && data.daily.time && data.daily.time.length){
+            result.tempMax = Math.round(data.daily.temperature_2m_max[0]);
+            result.tempMin = Math.round(data.daily.temperature_2m_min[0]);
+            result.sunrise = data.daily.sunrise[0];
+            result.sunset = data.daily.sunset[0];
+          }
+        }
+      }
+    }catch(e){ /* sin datos de clima disponibles, se muestra solo la luna */ }
+    astroCache[key] = result;
+    return result;
+  }
+
+  async function renderAstroLine(){
+    const el = document.getElementById("astroLine");
+    if(!el) return;
+    el.textContent = "Cargando…";
+    const forDate = currentDate;
+    const info = await fetchDayAstro(forDate);
+    if(dateKey(currentDate) !== dateKey(forDate)) return; // el usuario ya cambió de día
+    const moonTxt = "Luna " + info.moonIllum + "%";
+    if(info.tempMax !== undefined){
+      el.textContent = info.tempMax + "°/" + info.tempMin + "° - " + moonTxt + " - (sol) " + formatISOTime(info.sunrise) + "/(luna) " + formatISOTime(info.sunset);
+    } else {
+      el.textContent = moonTxt + " · clima no disponible";
+    }
   }
 
   /* ============ EXPORT / GITHUB SYNC ============ */
@@ -1857,7 +2567,7 @@
         const cfg = JSON.parse(raw);
         if(cfg.repo) ghRepoInput.value = cfg.repo;
         if(cfg.path) ghPathInput.value = cfg.path;
-        if(cfg.token) ghTokenInput.value = cfg.token; // <-- CARGA EL TOKEN GUARDADO
+        if(cfg.token) ghTokenInput.value = cfg.token;
       }
     }catch(e){}
     ghModal.hidden = false;
@@ -1869,7 +2579,7 @@
   ghModal.addEventListener("mousedown", (e) => { if(e.target === ghModal) closeGithubModal(); });
 
   async function gatherAllData(){
-    const result = { exportedAt: new Date().toISOString(), days:{}, months:{}, weeks:{} };
+    const result = { exportedAt: new Date().toISOString(), days:{}, months:{}, weeks:{}, habits:null, xp:null };
     let keys = [];
     try{
       if(window.storage){
@@ -1889,6 +2599,8 @@
       if(k.startsWith("bj:day:")) result.days[k.slice(7)] = val;
       else if(k.startsWith("bj:month:")) result.months[k.slice(9)] = val;
       else if(k.startsWith("bj:week:")) result.weeks[k.slice(8)] = val;
+      else if(k === "bj:habits") result.habits = val;
+      else if(k === "bj:xp") result.xp = val;
     }
     return result;
   }
@@ -1951,7 +2663,6 @@
 
     try{
       setGhStatus("Guardando configuración…", "busy");
-      // <-- AÑADIDO EL TOKEN A LA CONFIGURACIÓN GUARDADA
       await storeSet("bj:config:github", JSON.stringify({ repo, path, token }));
 
       setGhStatus("Reuniendo datos…", "busy");
@@ -1987,6 +2698,20 @@
     }
   });
 
+  async function applyImportedData(parsedData){
+    if(parsedData.days){
+      for(const k in parsedData.days){ await storeSet("bj:day:"+k, JSON.stringify(parsedData.days[k])); }
+    }
+    if(parsedData.months){
+      for(const k in parsedData.months){ await storeSet("bj:month:"+k, JSON.stringify(parsedData.months[k])); }
+    }
+    if(parsedData.weeks){
+      for(const k in parsedData.weeks){ await storeSet("bj:week:"+k, JSON.stringify(parsedData.weeks[k])); }
+    }
+    if(parsedData.habits){ await storeSet("bj:habits", JSON.stringify(parsedData.habits)); }
+    if(parsedData.xp){ await storeSet("bj:xp", JSON.stringify(parsedData.xp)); }
+  }
+
   /* --- IMPORTAR DESDE GITHUB --- */
   document.getElementById("ghLoad").addEventListener("click", async () => {
     const repo = ghRepoInput.value.trim();
@@ -2014,23 +2739,39 @@
       const parsedData = JSON.parse(jsonStr);
 
       setGhStatus("Importando datos localmente…", "busy");
-
-      if(parsedData.days){
-        for(const k in parsedData.days){ await storeSet("bj:day:"+k, JSON.stringify(parsedData.days[k])); }
-      }
-      if(parsedData.months){
-        for(const k in parsedData.months){ await storeSet("bj:month:"+k, JSON.stringify(parsedData.months[k])); }
-      }
-      if(parsedData.weeks){
-        for(const k in parsedData.weeks){ await storeSet("bj:week:"+k, JSON.stringify(parsedData.weeks[k])); }
-      }
-
+      await applyImportedData(parsedData);
       setGhStatus("Datos cargados correctamente.", "ok");
-      
+
       closeGithubModal();
+      await loadHabits();
+      await initXP();
       await refresh();
     }catch(err){
       setGhStatus("Error: " + err.message, "err");
+    }
+  });
+
+  /* --- IMPORTAR DESDE ARCHIVO LOCAL --- */
+  document.getElementById("ghUploadFile").addEventListener("click", () => {
+    document.getElementById("jsonFileInput").click();
+  });
+  document.getElementById("jsonFileInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      setGhStatus("Leyendo archivo…", "busy");
+      const text = await file.text();
+      const parsedData = JSON.parse(text);
+      await applyImportedData(parsedData);
+      setGhStatus("Datos cargados desde el archivo.", "ok");
+      closeGithubModal();
+      await loadHabits();
+      await initXP();
+      await refresh();
+    }catch(err){
+      setGhStatus("Error leyendo el archivo: " + err.message, "err");
+    } finally {
+      e.target.value = "";
     }
   });
 
@@ -2039,12 +2780,22 @@
     await Promise.all([
       flushSave("bj:day:"+dateKey(currentDate)),
       flushSave("bj:month:"+monthKey(currentDate)),
-      flushSave("bj:week:"+weekKey(currentDate))
+      flushSave("bj:week:"+weekKey(currentDate)),
+      flushSave("bj:xp"),
+      flushSave("bj:habits")
     ]);
     currentDate = new Date(d);
     currentDate.setHours(0,0,0,0);
     await refresh();
   }
+
+  window.addEventListener("beforeunload", () => {
+    flushSave("bj:day:"+dateKey(currentDate));
+    flushSave("bj:month:"+monthKey(currentDate));
+    flushSave("bj:week:"+weekKey(currentDate));
+    flushSave("bj:xp");
+    flushSave("bj:habits");
+  });
 
   async function refresh(){
     selected.clear();
@@ -2054,15 +2805,22 @@
     renderHeader();
     renderTodo();
     renderGoals();
+    renderHabits();
     renderWhiteboard();
     renderCarousel();
     miniCalDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     renderMiniCalendar();
+    renderAstroLine();
     updateUndoRedoButtons();
   }
 
-  refresh();
-  initXP();
+  async function init(){
+    await loadHabits();
+    await initXP();
+    await refresh();
+  }
+
+  init();
 })();
 </script>
 </body>
