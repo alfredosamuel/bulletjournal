@@ -1,244 +1,108 @@
 {
-  "exportedAt": "2026-07-28T06:58:35.756Z",
+  "exportedAt": "2026-08-01T01:16:10.357Z",
   "days": {
-    "2026-07-27": {
-      "startHour": "11:30",
-      "tasks": [
-        {
-          "done": false,
-          "text": "ducha y comer"
-        },
-        {
-          "done": false,
-          "text": "dani"
-        },
-        {
-          "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "dd"
-        },
-        {
-          "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "agregar {poder repetir días cosas de la todo list, hora, racha de mes y q de dias se congele la racha pero no se pierda, reinicio en el mes, adjuntar otros links}"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "bot{poner todas las medias sobre la roja, poner rebote en poc, sobre o bajo una media y listo, que entre cuando vuelva a pasar por ahí}"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "agregar {conectar con python para ventana abierta tiempo, sumar exp, vscode, pestaña de navegador, etc, que eso vaya sumando otras stats. Que diga temperatura y horas del día, que lo días sumen exp, que segun el clima haya algo, y que me de frases segun la numerología del día, pestaña con analisis, pestaña con nodos de actividades, que las metas de mes y de semana tambien tengan su ticket y que de experiencia, agregar objeto permanente en pizarra, agrgar sub tarea exp metodo, agregar diero earn, agregar que exportar json me lo mande al mail}"
-        }
-      ],
-      "whiteboard": {
-        "scale": 1.0132581651840002,
-        "tx": 35.866026886271925,
-        "ty": 38.407732966079976,
-        "strokes": [],
-        "elements": []
-      }
-    },
-    "2026-07-28": {
+    "2026-07-22": {
       "startHour": "10:00",
       "tasks": [
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": "dani apraxia"
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": "d"
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": "d"
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "hacer caca",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
         },
         {
           "done": false,
-          "text": "d"
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": "d"
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": "d"
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": "d"
-        },
-        {
-          "done": false,
-          "text": "fin dani apraxia"
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": "tesis"
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         }
       ],
-      "whiteboard": {
-        "scale": 1,
-        "tx": 40,
-        "ty": 40,
-        "strokes": [],
-        "elements": []
-      }
-    },
-    "2026-07-26": {
-      "startHour": "13:30",
-      "tasks": [
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": true,
-          "text": "paseo"
-        },
-        {
-          "done": true,
-          "text": "paseo"
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": true,
-          "text": "aseo 37min / pausa 15 min"
-        },
-        {
-          "done": true,
-          "text": "aseo alargado"
-        },
-        {
-          "done": false,
-          "text": "cumbia"
-        },
-        {
-          "done": false,
-          "text": "cumbia/acostarse"
-        }
-      ],
-      "whiteboard": {
-        "scale": 1,
-        "tx": 40,
-        "ty": 40,
-        "strokes": [],
-        "elements": []
+      "habits": {
+        "h_1785542334118_21": true,
+        "h_1785542344552_447": true,
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      },
+      "habitsAwarded": {
+        "h_1785542334118_21": true,
+        "h_1785542344552_447": true,
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
       }
     },
     "2026-07-25": {
@@ -246,73 +110,728 @@
       "tasks": [
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        }
+      ],
+      "habits": {
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      },
+      "habitsAwarded": {
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      }
+    },
+    "2026-07-26": {
+      "startHour": "10:00",
+      "tasks": [
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        }
+      ],
+      "habits": {
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      },
+      "habitsAwarded": {
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      }
+    },
+    "2026-07-27": {
+      "startHour": "10:00",
+      "tasks": [
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        }
+      ],
+      "habits": {
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      },
+      "habitsAwarded": {
+        "h_1785542345656_25": true,
+        "h_1785542346655_722": true,
+        "h_1785542349111_424": true
+      }
+    },
+    "2026-07-28": {
+      "startHour": "11:00",
+      "tasks": [
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": true,
-          "text": "pololear"
+          "text": "ensayo",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "ensayo",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "ensayo",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "ensayo",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "pololear",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
         },
         {
           "done": false,
-          "text": ""
+          "text": "Casa",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": true,
+          "text": "codear trading",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "codear trading",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "ver videos mezcla",
+          "xpAwarded": true
         },
         {
           "done": false,
-          "text": ""
+          "text": "revisar mezcla",
+          "xpAwarded": false
         },
         {
           "done": false,
-          "text": ""
+          "text": "revisar mezcla/ revisar master",
+          "xpAwarded": false
         },
         {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
-        },
-        {
-          "done": false,
-          "text": ""
+          "done": true,
+          "text": "ensayo diego",
+          "xpAwarded": true
         }
       ],
+      "habits": {},
+      "habitsAwarded": {}
+    },
+    "2026-07-31": {
+      "startHour": "10:00",
+      "tasks": [
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": true,
+          "text": "cumbia",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "cumbia",
+          "xpAwarded": true
+        },
+        {
+          "done": false,
+          "text": "pausa/cumbia",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "21:13 cumbia",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "cumbia",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "cumbia",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "cumbia",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "texto tesis revisar/leer primera seccion.",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "corregir app párrafo",
+          "xpAwarded": false
+        }
+      ],
+      "habits": {
+        "h_1785295965012_548": true
+      },
+      "habitsAwarded": {
+        "h_1785295965012_548": true
+      }
+    },
+    "2026-07-30": {
+      "startHour": "10:00",
+      "tasks": [
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": true,
+          "text": "tocar",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "tocar",
+          "xpAwarded": true
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        }
+      ],
+      "habits": {
+        "h_1785295965012_548": true
+      },
+      "habitsAwarded": {
+        "h_1785295965012_548": true
+      }
+    },
+    "2026-07-29": {
+      "startHour": "10:00",
+      "tasks": [
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": true,
+          "text": "",
+          "xpAwarded": true
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        },
+        {
+          "done": false,
+          "text": "",
+          "xpAwarded": false
+        }
+      ],
+      "habits": {},
+      "habitsAwarded": {}
+    }
+  },
+  "months": {
+    "2026-07": {
+      "goals": [
+        {
+          "id": "mg_1785542395449_673",
+          "text": "ghhgdfhhfghfh",
+          "done": false,
+          "xpAwarded": false
+        }
+      ]
+    },
+    "2026-08": {
+      "goals": "terminar balada - "
+    }
+  },
+  "weeks": {
+    "2026-07-27": {
+      "goals": [],
+      "whiteboard": {
+        "scale": 0.9803099192109663,
+        "tx": 117.64002672015249,
+        "ty": 261.0553489321127,
+        "strokes": [],
+        "elements": [
+          {
+            "id": "el_1785537026726_385",
+            "type": "text",
+            "x": 541.1036478174362,
+            "y": 231.26050508241426,
+            "content": "Acordeonmano izquierdaacordes1 | 3 5mano erechamelodiadepues toca con tercera o acorde completo"
+          },
+          {
+            "id": "el_1785537924289_103",
+            "type": "text",
+            "x": 549.3977551892701,
+            "y": 301.5847334287258,
+            "content": "Acordeon 2tururu | tu tu | tu"
+          },
+          {
+            "id": "el_1785542675065_544",
+            "type": "text",
+            "x": 538.4302485327163,
+            "y": 137.0099196139858,
+            "content": "viernes 31"
+          }
+        ]
+      }
+    },
+    "2026-07-20": {
+      "goals": [],
       "whiteboard": {
         "scale": 1,
         "tx": 40,
@@ -322,14 +841,39 @@
       }
     }
   },
-  "months": {
-    "2026-07": {
-      "goals": "Terminar TesisTocar SCD"
+  "habits": [
+    {
+      "id": "h_1785542334118_21",
+      "name": "tomar agua"
+    },
+    {
+      "id": "h_1785542344552_447",
+      "name": "cvxcvxc"
+    },
+    {
+      "id": "h_1785542345656_25",
+      "name": "xcvxcvx"
+    },
+    {
+      "id": "h_1785542346655_722",
+      "name": "xcvxcvx"
+    },
+    {
+      "id": "h_1785542349111_424",
+      "name": "xcvxcv"
     }
-  },
-  "weeks": {
-    "2026-07-27": {
-      "goals": "Terminar TesisTocar SCDSesion Dani"
+  ],
+  "xp": {
+    "totalXP": 420,
+    "streak": 2,
+    "bestStreak": 2,
+    "lastActiveDate": "2026-07-31",
+    "monthStreak": 1,
+    "bestMonthStreak": 1,
+    "lastActiveMonthKey": "2026-07",
+    "goalsXP": 0,
+    "habits": {
+      "h_1785295965012_548": 24
     }
   }
 }
