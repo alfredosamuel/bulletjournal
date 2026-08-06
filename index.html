@@ -55,6 +55,63 @@
     max-width:100vw;
   }
 
+  /* ---------- TICKERS (precios + noticias, estilo cinta) ---------- */
+  #tickerStack{
+    display:flex;
+    flex-direction:column;
+    flex-shrink:0;
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--bg-2);
+    margin: -22px -26px 0 -26px;
+  }
+  .ticker-strip{
+    position:relative;
+    overflow:hidden;
+    white-space:nowrap;
+    height: 25px;
+    display:flex;
+    align-items:center;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .ticker-strip:last-child{ border-bottom:none; }
+  .ticker-strip::before{
+    content:"";
+    position:absolute; top:0; bottom:0; left:0;
+    width: 60px;
+    background: linear-gradient(90deg, var(--bg-2), rgba(20,22,29,0));
+    z-index:2; pointer-events:none;
+  }
+  .ticker-strip::after{
+    content:"";
+    position:absolute; top:0; bottom:0; right:0;
+    width: 60px;
+    background: linear-gradient(270deg, var(--bg-2), rgba(20,22,29,0));
+    z-index:2; pointer-events:none;
+  }
+  .ticker-track{
+    display:inline-flex;
+    align-items:center;
+    animation: tickerScroll 45s linear infinite;
+    will-change: transform;
+  }
+  .ticker-strip:hover .ticker-track{ animation-play-state: paused; }
+  @keyframes tickerScroll{
+    0%{ transform: translateX(0); }
+    100%{ transform: translateX(-50%); }
+  }
+  .ticker-item{
+    display:inline-flex; align-items:center; gap:6px;
+    padding: 0 22px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space:nowrap;
+    text-decoration:none;
+  }
+  .ticker-item .tk-sym{ color: var(--text); font-weight:600; letter-spacing:.3px; }
+  .ticker-item .tk-up{ color: var(--habit-green); }
+  .ticker-item .tk-down{ color: var(--danger); }
+
   /* ---------- HEADER ---------- */
   #page-header{
     display:flex;
@@ -903,10 +960,52 @@
     outline: none;
     min-width: 100px;
     min-height: 1.4em;
+    white-space: pre-wrap;
   }
   .text-el-content:empty::before{
     content: attr(data-placeholder);
     color: var(--text-faint);
+  }
+  .board-el.ticket-el{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--text);
+    min-width: 160px;
+    min-height: 1.6em;
+    padding: 9px 11px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(32,35,46,0.55);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+    transform: translateZ(0);
+    display:flex;
+    align-items:flex-start;
+    gap: 8px;
+  }
+  .board-el.ticket-el:focus-within{
+    border-color: var(--habit-green);
+    background: rgba(126,214,165,0.08);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.32);
+  }
+  .board-el.ticket-el.done{ border-color: var(--habit-green); }
+  .ticket-el-check{ margin-top: 2px; flex-shrink:0; cursor:pointer; }
+  .ticket-el-content{
+    outline: none;
+    min-width: 100px;
+    min-height: 1.4em;
+    cursor: text;
+    white-space: pre-wrap;
+  }
+  .ticket-el-content:empty::before{
+    content: attr(data-placeholder);
+    color: var(--text-faint);
+  }
+  .board-el.ticket-el.done .ticket-el-content{
+    color: var(--text-faint);
+    text-decoration: line-through;
   }
   .board-el.link-el{
     font-family:'Inter', sans-serif;
@@ -1133,6 +1232,12 @@
 <body>
 <div id="app">
 
+  <div id="tickerStack">
+    <div class="ticker-strip prices" id="priceTickerStrip">
+      <div class="ticker-track" id="priceTickerTrack"></div>
+    </div>
+  </div>
+
   <header id="page-header">
     <div class="date-block">
       <div class="eyebrow-row">
@@ -1199,6 +1304,7 @@
         </button>
         <div class="toolbar-sep"></div>
         <button class="tool-btn" data-tool="text" title="Texto (T)">T</button>
+        <button class="tool-btn" data-tool="ticket" title="Ticket con XP (G)">☑</button>
         <div class="toolbar-sep"></div>
         <button class="tool-btn" id="undoBtn" title="Deshacer (Ctrl+Z)">↶</button>
         <button class="tool-btn" id="redoBtn" title="Rehacer (Ctrl+Y)">↷</button>
@@ -2465,6 +2571,15 @@
 
       let preEditSnapshot = null;
       editable.addEventListener("focus", () => { preEditSnapshot = snapshotWhiteboard(); });
+      editable.addEventListener("keydown", (ev) => {
+        if(ev.key === "Enter"){
+          ev.preventDefault();
+          ev.stopPropagation();
+          insertLineBreakAtCaret();
+          el.content = editable.textContent;
+          saveWeek();
+        }
+      });
       editable.addEventListener("input", () => {
         el.content = editable.textContent;
         saveWeek();
@@ -2482,6 +2597,69 @@
           const after = snapshotWhiteboard();
           if(after !== preEditSnapshot) pushUndo(preEditSnapshot);
           preEditSnapshot = null;
+        }
+      });
+    } else if(el.type === "ticket"){
+      node = document.createElement("div");
+      node.className = "board-el ticket-el" + (el.done ? " done" : "");
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "mini-checkbox ticket-el-check";
+      cb.checked = !!el.done;
+      cb.addEventListener("mousedown", (ev) => { ev.stopPropagation(); });
+      cb.addEventListener("change", () => {
+        el.done = cb.checked;
+        node.classList.toggle("done", cb.checked);
+        if(cb.checked){
+          if(!el.xpAwarded){
+            el.xpAwarded = true;
+            addXP(XP_PER_TASK);
+          }
+        } else if(el.xpAwarded){
+          el.xpAwarded = false;
+          addXP(-XP_PER_TASK);
+        }
+        saveWeek();
+      });
+      node.appendChild(cb);
+
+      const editable = document.createElement("div");
+      editable.className = "ticket-el-content";
+      editable.contentEditable = "true";
+      editable.setAttribute("data-placeholder", "Escribe…");
+      editable.textContent = el.content;
+      node.appendChild(editable);
+
+      let preEditSnapshotT = null;
+      editable.addEventListener("focus", () => { preEditSnapshotT = snapshotWhiteboard(); });
+      editable.addEventListener("keydown", (ev) => {
+        if(ev.key === "Enter"){
+          ev.preventDefault();
+          ev.stopPropagation();
+          insertLineBreakAtCaret();
+          el.content = editable.textContent;
+          saveWeek();
+        }
+      });
+      editable.addEventListener("input", () => {
+        el.content = editable.textContent;
+        saveWeek();
+        void editable.offsetHeight;
+      });
+      editable.addEventListener("blur", () => {
+        const emptied = !editable.textContent.trim();
+        if(emptied){
+          if(el.xpAwarded) addXP(-XP_PER_TASK);
+          weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
+          selected.delete(el.id);
+          renderWhiteboard();
+          saveWeek();
+        }
+        if(preEditSnapshotT !== null){
+          const after = snapshotWhiteboard();
+          if(after !== preEditSnapshotT) pushUndo(preEditSnapshotT);
+          preEditSnapshotT = null;
         }
       });
     } else if(el.type === "link"){
@@ -2507,6 +2685,7 @@
     del.addEventListener("mousedown", (ev) => {
       ev.stopPropagation();
       pushUndo();
+      if(el.type === "ticket" && el.xpAwarded) addXP(-XP_PER_TASK);
       weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
       selected.delete(el.id);
       renderWhiteboard();
@@ -2518,13 +2697,17 @@
       if(tool !== "select") return;
       ev.stopPropagation();
       if(ev.target === del) return;
-      if(el.type === "text" && node.contains(document.activeElement) && document.activeElement !== node) return;
+      if((el.type === "text" || el.type === "ticket") && node.contains(document.activeElement) && document.activeElement !== node) return;
       const additive = ev.ctrlKey || ev.metaKey || ev.shiftKey;
       if(additive) toggleSelect(el.id);
       else if(!selected.has(el.id)) setSelection([el.id]);
       if(el.type === "text"){
         ev.preventDefault();
         placeCaretEnd(node.querySelector(".text-el-content"));
+      } else if(el.type === "ticket"){
+        if(ev.target.classList.contains("ticket-el-check")) { startDragSelected(ev); return; }
+        ev.preventDefault();
+        placeCaretEnd(node.querySelector(".ticket-el-content"));
       }
       startDragSelected(ev);
     });
@@ -2617,6 +2800,19 @@
     document.addEventListener("mouseup", onUp);
   }
 
+  function insertLineBreakAtCaret(){
+    const sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const textNode = document.createTextNode("\n");
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
   function placeCaretEnd(node){
     node.focus();
     const range = document.createRange();
@@ -2630,15 +2826,15 @@
   function focusTextElementNow(id){
     const node = elLayer.querySelector('[data-id="'+id+'"]');
     if(node){
-      const editable = node.querySelector(".text-el-content") || node;
+      const editable = node.querySelector(".text-el-content") || node.querySelector(".ticket-el-content") || node;
       placeCaretEnd(editable);
       setSelection([id]);
     }
   }
 
-  function addElement(type, x, y, content){
+  function addElement(type, x, y, content, extra){
     pushUndo();
-    const el = { id: "el_"+Date.now()+"_"+Math.floor(Math.random()*1000), type, x, y, content };
+    const el = Object.assign({ id: "el_"+Date.now()+"_"+Math.floor(Math.random()*1000), type, x, y, content }, extra || {});
     weekData.whiteboard.elements.push(el);
     renderElement(el);
     saveWeek();
@@ -2691,6 +2887,15 @@
       e.preventDefault();
       const pt = pageToCanvas(e.clientX, e.clientY);
       const el = addElement("text", pt.x, pt.y, "");
+      setTool("select");
+      focusTextElementNow(el.id);
+      return;
+    }
+
+    if(tool === "ticket"){
+      e.preventDefault();
+      const pt = pageToCanvas(e.clientX, e.clientY);
+      const el = addElement("ticket", pt.x, pt.y, "", { done:false, xpAwarded:false });
       setTool("select");
       focusTextElementNow(el.id);
       return;
@@ -2819,7 +3024,7 @@
     document.querySelectorAll(".tool-btn").forEach(b => b.classList.remove("active"));
     let match = document.querySelector('.tool-btn[data-tool="'+t+'"]' + (t==="pen" ? '[data-color="'+color+'"]' : ""));
     if(match) match.classList.add("active");
-    viewport.classList.toggle("tool-text", t === "text");
+    viewport.classList.toggle("tool-text", t === "text" || t === "ticket");
   }
   document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
     btn.addEventListener("click", () => setTool(btn.dataset.tool, btn.dataset.color));
@@ -2845,8 +3050,12 @@
     }
 
     if(e.key.toLowerCase() === "t"){ setTool("text"); }
+    if(e.key.toLowerCase() === "g"){ setTool("ticket"); }
     if((e.key === "Delete" || e.key === "Backspace") && selected.size > 0){
       pushUndo();
+      weekData.whiteboard.elements.forEach(el => {
+        if(selected.has(el.id) && el.type === "ticket" && el.xpAwarded) addXP(-XP_PER_TASK);
+      });
       weekData.whiteboard.elements = weekData.whiteboard.elements.filter(el => !selected.has(el.id));
       weekData.whiteboard.strokes = weekData.whiteboard.strokes.filter(s => !selected.has(s.id));
       clearSelection();
@@ -3351,6 +3560,101 @@
     if(mainGrid) mainGrid.scrollLeft = 0;
     document.querySelectorAll(".page-dot").forEach((d,i) => d.classList.toggle("active", i===0));
   }
+
+  /* ============ TICKERS (precios) ============ */
+  // Fuente: Yahoo Finance (endpoint público, sin necesidad de API key).
+  // Símbolos Yahoo: futuros con sufijo "=F", pares de divisas con sufijo "=X", índices con prefijo "^".
+  const YAHOO_SYMBOLS = [
+    { symbol: "NQ=F",  label: "NASDAQ FUT", decimals: 2 },
+    { symbol: "GC=F",  label: "ORO FUT",    decimals: 2 },
+    { symbol: "CLP=X", label: "USD/CLP",    decimals: 1 },
+    { symbol: "AAPL",  label: "AAPL",       decimals: 2 },
+    { symbol: "MSFT",  label: "MSFT",       decimals: 2 },
+    { symbol: "NVDA",  label: "NVDA",       decimals: 2 },
+    { symbol: "GOOGL", label: "GOOGL",      decimals: 2 },
+    { symbol: "TSLA",  label: "TSLA",       decimals: 2 }
+  ];
+  const YAHOO_HOSTS = ["query1.finance.yahoo.com", "query2.finance.yahoo.com"];
+  // Yahoo Finance no envía cabeceras CORS, así que el navegador bloquea el fetch directo.
+  // Pasamos la petición por proxies CORS públicos (con respaldo entre varios, por si alguno cae).
+  const CORS_PROXIES = [
+    (url) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+    (url) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url),
+    (url) => "https://corsproxy.io/?url=" + encodeURIComponent(url)
+  ];
+
+  async function fetchYahooQuote(symbol){
+    let lastErr;
+    for(const host of YAHOO_HOSTS){
+      const targetUrl = "https://"+host+"/v8/finance/chart/"+encodeURIComponent(symbol)+"?interval=1d&range=1d";
+      for(const buildProxyUrl of CORS_PROXIES){
+        try{
+          const r = await fetch(buildProxyUrl(targetUrl));
+          if(!r.ok) throw new Error("HTTP "+r.status);
+          const d = await r.json();
+          const meta = d && d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
+          if(!meta || meta.regularMarketPrice === undefined) throw new Error("Sin datos");
+          const price = meta.regularMarketPrice;
+          const prevClose = meta.previousClose !== undefined ? meta.previousClose : meta.chartPreviousClose;
+          const changePct = (prevClose ? ((price - prevClose) / prevClose) * 100 : null);
+          return { price, changePct };
+        }catch(e){ lastErr = e; }
+      }
+    }
+    throw lastErr;
+  }
+
+  function buildTickerTrack(trackEl, itemsHtml){
+    if(!trackEl) return;
+    trackEl.innerHTML = itemsHtml + itemsHtml; // duplicado para que el loop sea continuo
+  }
+
+  function fmtTickerPrice(n, decimals){
+    if(n === null || n === undefined || isNaN(n)) return "—";
+    return Number(n).toLocaleString("es-CL", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+
+  function priceItemHtml(label, price, changePct, decimals){
+    decimals = decimals === undefined ? 2 : decimals;
+    let changeHtml = "";
+    if(changePct !== null && changePct !== undefined && !isNaN(changePct)){
+      const cls = changePct >= 0 ? "tk-up" : "tk-down";
+      const arrow = changePct >= 0 ? "▲" : "▼";
+      changeHtml = '<span class="'+cls+'">'+arrow+' '+Math.abs(changePct).toFixed(2)+'%</span>';
+    }
+    return '<span class="ticker-item"><span class="tk-sym">'+label+'</span><span>'+fmtTickerPrice(price, decimals)+'</span>'+changeHtml+'</span>';
+  }
+
+  async function refreshPriceTicker(){
+    const track = document.getElementById("priceTickerTrack");
+    if(!track) return;
+    const items = [];
+
+    try{
+      const r = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT");
+      const d = await r.json();
+      items.push(priceItemHtml("BTC/USDT", d.lastPrice, parseFloat(d.priceChangePercent), 0));
+    }catch(e){
+      items.push('<span class="ticker-item"><span class="tk-sym">BTC/USDT</span><span>—</span></span>');
+    }
+
+    const yahooResults = await Promise.allSettled(
+      YAHOO_SYMBOLS.map(s => fetchYahooQuote(s.symbol))
+    );
+    yahooResults.forEach((res, i) => {
+      const s = YAHOO_SYMBOLS[i];
+      if(res.status === "fulfilled"){
+        items.push(priceItemHtml(s.label, res.value.price, res.value.changePct, s.decimals));
+      } else {
+        items.push('<span class="ticker-item"><span class="tk-sym">'+s.label+'</span><span>—</span></span>');
+      }
+    });
+
+    buildTickerTrack(track, items.join(""));
+  }
+
+  refreshPriceTicker();
+  setInterval(refreshPriceTicker, 60000);
 
   async function init(){
     await loadHabits();
