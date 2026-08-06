@@ -1071,7 +1071,8 @@
       <h1 id="dateTitle">27 <span class="month-part">de Julio</span></h1>
     </div>
     <div id="nav-arrows">
-      <button class="icon-btn wide-btn" id="githubBtn" title="Sincronizar con GitHub">⇪ Sincronizar</button>
+      <button class="icon-btn wide-btn" id="loginBtn" title="Iniciar sesión">🔑 Login</button>
+      <button class="icon-btn wide-btn" id="githubBtn" title="Sincronizar con GitHub" hidden>⇪ Sincronizar</button>
       <button class="icon-btn" id="prevDay" title="Día anterior">‹</button>
       <button class="icon-btn" id="nextDay" title="Día siguiente">›</button>
     </div>
@@ -1245,9 +1246,27 @@
   </div>
 </div>
 
-<script>
-(function(){
-  "use strict";
+<script type="module">
+  // Importamos Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  // === PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE ===
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_AUTH_DOMAIN",
+    projectId: "TU_PROJECT_ID",
+    storageBucket: "TU_STORAGE_BUCKET",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  let currentUser = null;
 
   /* ============ DATE HELPERS ============ */
   const WEEKDAYS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
@@ -1270,25 +1289,28 @@
   function addDays(d, n){ const c = new Date(d); c.setDate(c.getDate()+n); return c; }
   function daysInMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); }
 
-  /* ============ STORAGE ============ */
-  const memoryStore = {};
+  /* ============ STORAGE (FIRESTORE) ============ */
   async function storeGet(key){
-    try{
-      if(window.storage){
-        const r = await window.storage.get(key, false);
-        return r ? r.value : null;
+    if(!currentUser) return null;
+    try {
+      const docRef = doc(db, "bulletjournal", key);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data().payload;
       }
-    }catch(e){ /* missing key or error -> fall through */ }
-    return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
+    } catch(e) { console.error("Error leyendo de Firestore:", e); }
+    return null;
   }
+
   async function storeSet(key, value){
-    try{
-      if(window.storage){
-        await window.storage.set(key, value, false);
-        return;
-      }
-    }catch(e){ /* fall back below */ }
-    memoryStore[key] = value;
+    if(!currentUser) return;
+    try {
+      const docRef = doc(db, "bulletjournal", key);
+      await setDoc(docRef, {
+        userId: currentUser.uid,
+        payload: value
+      });
+    } catch(e) { console.error("Error guardando en Firestore:", e); }
   }
 
   const pendingSaves = {};
@@ -1397,7 +1419,6 @@
     if(!raw){ xpState = defaultXpState(); return; }
     const parsed = JSON.parse(raw);
     xpState = Object.assign(defaultXpState(), parsed);
-    // Migración desde versiones anteriores (la barra azul antes se llamaba habitsXP/lineageXP)
     if(typeof parsed.goalsXP !== "number"){
       xpState.goalsXP = (parsed.habitsXP || parsed.lineageXP || 0);
     }
@@ -1517,8 +1538,6 @@
     }
   }
 
-  // El XP se suma al marcar y se resta al desmarcar (mismo monto que se otorgó),
-  // para que activar/desactivar un check nunca desincronice el total.
   function addXP(amount){
     const before = levelInfoFor(xpState.totalXP, levelThreshold, LEVEL_TITLES, MAX_LEVEL).level;
     xpState.totalXP = Math.max(0, xpState.totalXP + amount);
@@ -1539,8 +1558,6 @@
     if(after > before) flashLevelUp('goalsLevelBadge', 'goalsBarFill', '#6fa3ff');
   }
 
-  // Devuelve true si el hábito subió de nivel (el flash se dispara aparte,
-  // después de volver a pintar sus tarjetas).
   function awardHabitXP(habitId, amount){
     if(!xpState.habits) xpState.habits = {};
     const cur = xpState.habits[habitId] || 0;
@@ -1562,7 +1579,7 @@
     renderAllXP();
   }
 
-  /* ============ HABITOS (definiciones globales + barra propia c/u) ============ */
+  /* ============ HABITOS ============ */
   async function loadHabits(){
     const raw = await storeGet("bj:habits");
     HABITS_LIST = raw ? JSON.parse(raw) : [];
@@ -1717,9 +1734,6 @@
     }
   }
 
-  // Otorga (una única vez) el XP de metas que quedaron marcadas como hechas en datos
-  // antiguos/importados pero cuyo flag "xpAwarded" nunca se guardó, y deja ese flag en
-  // un booleano correcto para que de ahí en más marcar/desmarcar sume o reste bien.
   function backfillGoalsXP(container, amount){
     let changed = false;
     container.goals.forEach(g => {
@@ -1766,10 +1780,6 @@
       if(preservedHabits) dayData.habits = preservedHabits;
       if(preservedAwarded) dayData.habitsAwarded = preservedAwarded;
     }
-    // Migración: tareas de versiones previas sin la marca xpAwarded.
-    // Antes esto solo marcaba la tarea como "ya otorgada" sin sumar el XP real,
-    // por eso el total podía quedar en 0 aunque las tareas estuvieran marcadas.
-    // Ahora, si estaba hecha, se le otorga el XP en este momento (una sola vez).
     let dayNeedsSave = false;
     dayData.tasks.forEach(t => {
       if(typeof t.xpAwarded !== "boolean"){
@@ -1806,8 +1816,6 @@
     migrateGoals(monthData);
     if(backfillGoalsXP(monthData, GOAL_XP)) saveMonth();
 
-    // Migración: si el día traía una pizarra vieja (formato anterior por día) y la
-    // semana todavía no tiene contenido, se traslada para no perder lo dibujado.
     if(rawDay){
       const legacy = JSON.parse(rawDay);
       if(legacy.whiteboard && weekData.whiteboard.strokes.length === 0 && weekData.whiteboard.elements.length === 0){
@@ -1914,7 +1922,7 @@
     renderTodo();
   });
 
-  /* ============ RENDER: METAS (checklist) ============ */
+  /* ============ RENDER: METAS ============ */
   function renderGoalList(containerId, goalsArray, saveFn, emptyText){
     const list = document.getElementById(containerId);
     list.innerHTML = "";
@@ -2023,7 +2031,7 @@
     });
   });
 
-  /* ============ WHITEBOARD (por semana) ============ */
+  /* ============ WHITEBOARD ============ */
   const viewport = document.getElementById("whiteboard-viewport");
   const canvas = document.getElementById("whiteboard-canvas");
   const svg = document.getElementById("strokes-svg");
@@ -2659,10 +2667,8 @@
   }
 
   /* ============ CLIMA / LUNA / SOL ============ */
-  // Símbolos de estilo texto (VS-15 = presentación de texto, heredan la fuente y el color del párrafo,
-  // a diferencia de un emoji a todo color como 🔥 o 📅 que no tiene esa variante).
-  const SUN_TXT = "\u2600\uFE0E";   // ☀︎
-  const MOON_TXT = "\u263E\uFE0E";  // ☾︎
+  const SUN_TXT = "\u2600\uFE0E";
+  const MOON_TXT = "\u263E\uFE0E";
   const astroCache = {};
   let cachedCoords = null;
   let geoTried = false;
@@ -2716,7 +2722,7 @@
           }
         }
       }
-    }catch(e){ /* sin datos de clima disponibles, se muestra solo la luna */ }
+    }catch(e){ }
     astroCache[key] = result;
     return result;
   }
@@ -2727,7 +2733,7 @@
     els.forEach(el => { el.textContent = "Cargando…"; });
     const forDate = currentDate;
     const info = await fetchDayAstro(forDate);
-    if(dateKey(currentDate) !== dateKey(forDate)) return; // el usuario ya cambió de día
+    if(dateKey(currentDate) !== dateKey(forDate)) return;
     const moonTxt = "Luna " + info.moonIllum + "%";
     let text;
     if(info.tempMax !== undefined){
@@ -2771,28 +2777,19 @@
 
   async function gatherAllData(){
     const result = { exportedAt: new Date().toISOString(), days:{}, months:{}, weeks:{}, habits:null, xp:null };
-    let keys = [];
-    try{
-      if(window.storage){
-        const listRes = await window.storage.list("bj:", false);
-        keys = (listRes && listRes.keys) ? listRes.keys : [];
-      } else {
-        keys = Object.keys(memoryStore);
-      }
-    }catch(e){ keys = Object.keys(memoryStore); }
-
-    for(const k of keys){
-      if(k === "bj:config:github") continue;
-      const raw = await storeGet(k);
-      if(!raw) continue;
-      let val;
-      try{ val = JSON.parse(raw); }catch(e){ continue; }
-      if(k.startsWith("bj:day:")) result.days[k.slice(7)] = val;
-      else if(k.startsWith("bj:month:")) result.months[k.slice(9)] = val;
-      else if(k.startsWith("bj:week:")) result.weeks[k.slice(8)] = val;
-      else if(k === "bj:habits") result.habits = val;
-      else if(k === "bj:xp") result.xp = val;
-    }
+    if(!currentUser) return result;
+    try {
+      const querySnapshot = await getDocs(collection(db, "bulletjournal"));
+      querySnapshot.forEach((docSnap) => {
+        const k = docSnap.id;
+        const val = JSON.parse(docSnap.data().payload);
+        if(k.startsWith("bj:day:")) result.days[k.slice(7)] = val;
+        else if(k.startsWith("bj:month:")) result.months[k.slice(9)] = val;
+        else if(k.startsWith("bj:week:")) result.weeks[k.slice(8)] = val;
+        else if(k === "bj:habits") result.habits = val;
+        else if(k === "bj:xp") result.xp = val;
+      });
+    } catch(e){ console.error(e); }
     return result;
   }
 
@@ -2966,7 +2963,7 @@
     }
   });
 
-  /* ============ SWIPE MÓVIL (3 páginas: to-do / pizarra / metas) ============ */
+  /* ============ SWIPE MÓVIL ============ */
   function initMobileSwipe(){
     const mainGrid = document.getElementById("main-grid");
     const dots = Array.from(document.querySelectorAll(".page-dot"));
@@ -3039,8 +3036,33 @@
     initMobileSwipe();
   }
 
-  init();
-})();
+  // Lógica de Login
+  const loginBtn = document.getElementById("loginBtn");
+  if(loginBtn){
+    loginBtn.addEventListener("click", () => {
+      signInWithPopup(auth, provider).catch(e => alert("Error al iniciar sesión: " + e.message));
+    });
+  }
+
+  // Observador de estado de autenticación
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // El usuario inició sesión
+      currentUser = user;
+      if(loginBtn) loginBtn.hidden = true;
+      const ghBtn = document.getElementById("githubBtn");
+      if(ghBtn) ghBtn.hidden = false;
+      
+      // ¡Iniciamos la aplicación!
+      init(); 
+    } else {
+      // Sesión cerrada
+      currentUser = null;
+      if(loginBtn) loginBtn.hidden = false;
+      const ghBtn = document.getElementById("githubBtn");
+      if(ghBtn) ghBtn.hidden = true;
+    }
+  });
 </script>
 </body>
 </html>
