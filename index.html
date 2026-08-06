@@ -55,7 +55,7 @@
     max-width:100vw;
   }
 
-  /* ---------- TICKERS (precios + noticias, estilo cinta) ---------- */
+  /* ---------- TICKERS (precios, estilo cinta) ---------- */
   #tickerStack{
     display:flex;
     flex-direction:column;
@@ -64,6 +64,7 @@
     background: var(--bg-2);
     margin: -22px -26px 0 -26px;
   }
+  #tickerStack[hidden]{ display:none; }
   .ticker-strip{
     position:relative;
     overflow:hidden;
@@ -72,8 +73,10 @@
     display:flex;
     align-items:center;
     border-bottom: 1px solid var(--border-soft);
+    cursor: pointer;
   }
   .ticker-strip:last-child{ border-bottom:none; }
+  .ticker-strip:hover{ background: var(--panel); }
   .ticker-strip::before{
     content:"";
     position:absolute; top:0; bottom:0; left:0;
@@ -262,6 +265,90 @@
   }
   .modal-btn.ghost{ background:none; }
   .modal-btn:hover{ filter: brightness(1.1); }
+
+  /* ---------- MODAL: ajustes de activos del ticker ---------- */
+  .modal-box.wide{ width: 460px; }
+  .ticker-asset-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height: 220px;
+    overflow-y:auto;
+    margin: 4px 0 4px 0;
+  }
+  .ticker-asset-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 7px 9px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .ta-badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 6px;
+    border-radius: 6px;
+    flex-shrink:0;
+  }
+  .ta-badge.binance{ color: var(--habit-blue); background: var(--habit-blue-soft); }
+  .ta-info{ display:flex; flex-direction:column; gap:1px; flex:1; min-width:0; }
+  .ta-label{ font-size:12.5px; color: var(--text); font-weight:500; }
+  .ta-symbol{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color: var(--text-faint); }
+  .ta-remove{
+    flex-shrink:0;
+    width:24px; height:24px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:none;
+    color: var(--text-faint);
+    cursor:pointer;
+    font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ta-remove:hover{ border-color: var(--danger); color: var(--danger); }
+  .ticker-asset-empty{ font-size:12px; color: var(--text-faint); padding: 8px 2px; }
+  .ta-add-row{
+    display:flex;
+    gap:6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .ta-add-row select,
+  .ta-add-row input{
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    padding: 8px 9px;
+    border-radius: 8px;
+    outline:none;
+  }
+  .ta-add-row select:focus,
+  .ta-add-row input:focus{ border-color: var(--accent); }
+  .ta-add-row select{ flex: 0 0 100px; }
+  .ta-add-row input.ta-symbol-input{ flex: 1 1 110px; min-width:90px; }
+  .ta-add-row input.ta-label-input{ flex: 1 1 110px; min-width:90px; }
+  .ta-add-row input.ta-decimals-input{ flex: 0 0 64px; }
+  .ta-add-btn{
+    flex-shrink:0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-family:'Inter', sans-serif;
+    font-weight:500;
+    cursor:pointer;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .ta-add-btn:hover{ filter: brightness(1.1); }
   #ghStatus{
     margin-top: 12px;
     font-size: 12px;
@@ -1247,6 +1334,7 @@
       <h1 id="dateTitle">27 <span class="month-part">de Julio</span></h1>
     </div>
     <div id="nav-arrows">
+      <button class="icon-btn" id="tickerToggleBtn" title="Mostrar/ocultar cotizaciones">📊</button>
       <button class="icon-btn wide-btn" id="googleBtn" title="Iniciar sesión con Google">G· Iniciar sesión</button>
       <button class="icon-btn wide-btn" id="githubBtn" title="Sincronizar con GitHub">⇪ Sincronizar</button>
       <button class="icon-btn" id="prevDay" title="Día anterior">‹</button>
@@ -1446,6 +1534,33 @@
       <button class="modal-btn" id="ghLoad" title="Importar datos desde GitHub">↧ Cargar de GitHub</button>
       <button class="modal-btn" id="ghCancel">Cerrar</button>
       <button class="modal-btn primary" id="ghSave">Subir a GitHub</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tickerSettingsModal" hidden>
+  <div class="modal-box wide">
+    <h3>Cotizaciones</h3>
+    <p class="modal-hint">Agrega, quita o edita los activos que se muestran en la franja. "Yahoo" cubre futuros (sufijo <code>=F</code>, ej. <code>GC=F</code> oro, <code>NQ=F</code> Nasdaq), divisas (sufijo <code>=X</code>, ej. <code>CLP=X</code>) y acciones (ej. <code>AAPL</code>). "Binance" cubre pares cripto (ej. <code>BTCUSDT</code>).</p>
+
+    <div class="ticker-asset-list" id="tickerAssetList"></div>
+
+    <label style="margin-top:14px;">Agregar activo</label>
+    <div class="ta-add-row">
+      <select id="taSource">
+        <option value="yahoo">Yahoo</option>
+        <option value="binance">Binance</option>
+      </select>
+      <input class="ta-symbol-input" id="taSymbol" placeholder="Símbolo (ej. AAPL)" autocomplete="off" />
+      <input class="ta-label-input" id="taLabel" placeholder="Etiqueta (opcional)" autocomplete="off" />
+      <input class="ta-decimals-input" id="taDecimals" type="number" min="0" max="6" value="2" title="Decimales" />
+      <button class="ta-add-btn" id="taAddBtn">+ Agregar</button>
+    </div>
+    <div id="taStatus" class="modal-note"></div>
+
+    <div class="modal-actions">
+      <button class="modal-btn ghost" id="taReset" title="Volver a la lista por defecto">Restablecer</button>
+      <button class="modal-btn primary" id="taClose">Cerrar</button>
     </div>
   </div>
 </div>
@@ -3562,18 +3677,21 @@
   }
 
   /* ============ TICKERS (precios) ============ */
-  // Fuente: Yahoo Finance (endpoint público, sin necesidad de API key).
-  // Símbolos Yahoo: futuros con sufijo "=F", pares de divisas con sufijo "=X", índices con prefijo "^".
-  const YAHOO_SYMBOLS = [
-    { symbol: "NQ=F",  label: "NASDAQ FUT", decimals: 2 },
-    { symbol: "GC=F",  label: "ORO FUT",    decimals: 2 },
-    { symbol: "CLP=X", label: "USD/CLP",    decimals: 1 },
-    { symbol: "AAPL",  label: "AAPL",       decimals: 2 },
-    { symbol: "MSFT",  label: "MSFT",       decimals: 2 },
-    { symbol: "NVDA",  label: "NVDA",       decimals: 2 },
-    { symbol: "GOOGL", label: "GOOGL",      decimals: 2 },
-    { symbol: "TSLA",  label: "TSLA",       decimals: 2 }
+  // Fuentes: Yahoo Finance (futuros, divisas, acciones) y Binance (cripto). Sin API key.
+  const DEFAULT_TICKER_ASSETS = [
+    { id: "btc",   source: "binance", symbol: "BTCUSDT", label: "BTC/USDT",  decimals: 0 },
+    { id: "nqf",   source: "yahoo",   symbol: "NQ=F",    label: "NASDAQ FUT", decimals: 2 },
+    { id: "gcf",   source: "yahoo",   symbol: "GC=F",    label: "ORO FUT",    decimals: 2 },
+    { id: "clpx",  source: "yahoo",   symbol: "CLP=X",   label: "USD/CLP",    decimals: 1 },
+    { id: "aapl",  source: "yahoo",   symbol: "AAPL",    label: "AAPL",       decimals: 2 },
+    { id: "msft",  source: "yahoo",   symbol: "MSFT",    label: "MSFT",       decimals: 2 },
+    { id: "nvda",  source: "yahoo",   symbol: "NVDA",    label: "NVDA",       decimals: 2 },
+    { id: "googl", source: "yahoo",   symbol: "GOOGL",   label: "GOOGL",      decimals: 2 },
+    { id: "tsla",  source: "yahoo",   symbol: "TSLA",    label: "TSLA",       decimals: 2 }
   ];
+  let tickerAssets = DEFAULT_TICKER_ASSETS.slice();
+  let tickerVisible = true;
+
   const YAHOO_HOSTS = ["query1.finance.yahoo.com", "query2.finance.yahoo.com"];
   // Yahoo Finance no envía cabeceras CORS, así que el navegador bloquea el fetch directo.
   // Pasamos la petición por proxies CORS públicos (con respaldo entre varios, por si alguno cae).
@@ -3604,6 +3722,14 @@
     throw lastErr;
   }
 
+  async function fetchBinanceQuote(symbol){
+    const r = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol="+encodeURIComponent(symbol));
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const d = await r.json();
+    if(d.code) throw new Error(d.msg || "Símbolo inválido");
+    return { price: parseFloat(d.lastPrice), changePct: parseFloat(d.priceChangePercent) };
+  }
+
   function buildTickerTrack(trackEl, itemsHtml){
     if(!trackEl) return;
     trackEl.innerHTML = itemsHtml + itemsHtml; // duplicado para que el loop sea continuo
@@ -3628,32 +3754,145 @@
   async function refreshPriceTicker(){
     const track = document.getElementById("priceTickerTrack");
     if(!track) return;
-    const items = [];
 
-    try{
-      const r = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT");
-      const d = await r.json();
-      items.push(priceItemHtml("BTC/USDT", d.lastPrice, parseFloat(d.priceChangePercent), 0));
-    }catch(e){
-      items.push('<span class="ticker-item"><span class="tk-sym">BTC/USDT</span><span>—</span></span>');
+    if(!tickerAssets.length){
+      track.innerHTML = '<span class="ticker-item"><span class="tk-sym" style="color:var(--text-faint)">Sin activos configurados. Haz clic aquí para agregar uno →</span></span>';
+      return;
     }
 
-    const yahooResults = await Promise.allSettled(
-      YAHOO_SYMBOLS.map(s => fetchYahooQuote(s.symbol))
+    const results = await Promise.allSettled(
+      tickerAssets.map(a => a.source === "binance" ? fetchBinanceQuote(a.symbol) : fetchYahooQuote(a.symbol))
     );
-    yahooResults.forEach((res, i) => {
-      const s = YAHOO_SYMBOLS[i];
+    const items = results.map((res, i) => {
+      const a = tickerAssets[i];
       if(res.status === "fulfilled"){
-        items.push(priceItemHtml(s.label, res.value.price, res.value.changePct, s.decimals));
-      } else {
-        items.push('<span class="ticker-item"><span class="tk-sym">'+s.label+'</span><span>—</span></span>');
+        return priceItemHtml(a.label, res.value.price, res.value.changePct, a.decimals);
       }
+      return '<span class="ticker-item"><span class="tk-sym">'+a.label+'</span><span>—</span></span>';
     });
 
     buildTickerTrack(track, items.join(""));
   }
 
-  refreshPriceTicker();
+  /* --- Persistencia de ajustes del ticker (activos + visibilidad) --- */
+  async function loadTickerSettings(){
+    try{
+      const rawAssets = await storeGet("bj:tickerAssets");
+      if(rawAssets){
+        const parsed = JSON.parse(rawAssets);
+        if(Array.isArray(parsed) && parsed.length){ tickerAssets = parsed; }
+      }
+    }catch(e){ /* usa default */ }
+    try{
+      const rawVisible = await storeGet("bj:tickerVisible");
+      if(rawVisible !== null && rawVisible !== undefined){ tickerVisible = rawVisible !== "0"; }
+    }catch(e){ /* usa default true */ }
+  }
+  function saveTickerAssets(){
+    storeSet("bj:tickerAssets", JSON.stringify(tickerAssets));
+  }
+  function saveTickerVisible(){
+    storeSet("bj:tickerVisible", tickerVisible ? "1" : "0");
+  }
+
+  function applyTickerVisibility(){
+    const stack = document.getElementById("tickerStack");
+    const btn = document.getElementById("tickerToggleBtn");
+    if(stack) stack.hidden = !tickerVisible;
+    if(btn){
+      btn.style.opacity = tickerVisible ? "1" : "0.45";
+      btn.title = tickerVisible ? "Ocultar cotizaciones" : "Mostrar cotizaciones";
+    }
+  }
+
+  /* --- Modal de ajustes de activos --- */
+  const tickerModal = document.getElementById("tickerSettingsModal");
+  function setTaStatus(msg, type){
+    const el = document.getElementById("taStatus");
+    if(!el) return;
+    el.textContent = msg || "";
+    el.style.color = type === "err" ? "var(--danger)" : "var(--text-faint)";
+  }
+  function renderTickerAssetsList(){
+    const list = document.getElementById("tickerAssetList");
+    if(!list) return;
+    if(!tickerAssets.length){
+      list.innerHTML = '<div class="ticker-asset-empty">No hay activos agregados todavía.</div>';
+      return;
+    }
+    list.innerHTML = tickerAssets.map(a => (
+      '<div class="ticker-asset-row" data-id="'+a.id+'">'+
+        '<span class="ta-badge '+(a.source === "binance" ? "binance" : "")+'">'+(a.source === "binance" ? "Binance" : "Yahoo")+'</span>'+
+        '<div class="ta-info"><span class="ta-label">'+a.label+'</span><span class="ta-symbol">'+a.symbol+'</span></div>'+
+        '<button class="ta-remove" data-remove="'+a.id+'" title="Quitar">✕</button>'+
+      '</div>'
+    )).join("");
+    list.querySelectorAll("[data-remove]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-remove");
+        tickerAssets = tickerAssets.filter(a => a.id !== id);
+        saveTickerAssets();
+        renderTickerAssetsList();
+        refreshPriceTicker();
+      });
+    });
+  }
+  function openTickerSettingsModal(){
+    renderTickerAssetsList();
+    setTaStatus("");
+    tickerModal.hidden = false;
+  }
+  function closeTickerSettingsModal(){ tickerModal.hidden = true; }
+
+  document.getElementById("tickerToggleBtn").addEventListener("click", () => {
+    tickerVisible = !tickerVisible;
+    applyTickerVisibility();
+    saveTickerVisible();
+  });
+  document.getElementById("priceTickerStrip").addEventListener("click", openTickerSettingsModal);
+  document.getElementById("taClose").addEventListener("click", closeTickerSettingsModal);
+  tickerModal.addEventListener("mousedown", (e) => { if(e.target === tickerModal) closeTickerSettingsModal(); });
+
+  document.getElementById("taAddBtn").addEventListener("click", () => {
+    const source = document.getElementById("taSource").value;
+    const symbolInput = document.getElementById("taSymbol");
+    const labelInput = document.getElementById("taLabel");
+    const decimalsInput = document.getElementById("taDecimals");
+
+    const symbol = symbolInput.value.trim().toUpperCase();
+    if(!symbol){ setTaStatus("Escribe un símbolo primero.", "err"); return; }
+    const label = labelInput.value.trim() || symbol;
+    let decimals = parseInt(decimalsInput.value, 10);
+    if(isNaN(decimals) || decimals < 0) decimals = 2;
+
+    const id = "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    tickerAssets.push({ id, source, symbol, label, decimals });
+    saveTickerAssets();
+    renderTickerAssetsList();
+    setTaStatus("Agregado. Actualizando cotización…");
+    refreshPriceTicker().then(() => setTaStatus("Listo."));
+
+    symbolInput.value = "";
+    labelInput.value = "";
+    decimalsInput.value = "2";
+    symbolInput.focus();
+  });
+
+  document.getElementById("taReset").addEventListener("click", () => {
+    tickerAssets = DEFAULT_TICKER_ASSETS.map(a => ({ ...a }));
+    saveTickerAssets();
+    renderTickerAssetsList();
+    setTaStatus("Restablecido a la lista por defecto.");
+    refreshPriceTicker();
+  });
+
+  async function initTickerStrip(){
+    await loadTickerSettings();
+    applyTickerVisibility();
+    await refreshPriceTicker();
+  }
+
+  initTickerStrip();
   setInterval(refreshPriceTicker, 60000);
 
   async function init(){
