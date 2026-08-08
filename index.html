@@ -1157,6 +1157,26 @@
     font-size:12px;
   }
   #monthOverlayClose:hover{ color: var(--text); }
+  #month-overlay-modes{
+    display:flex; gap:4px;
+    background: var(--panel-2);
+    border:1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .month-mode-btn{
+    border:none;
+    background:none;
+    color: var(--text-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing:.4px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor:pointer;
+  }
+  .month-mode-btn:hover{ color: var(--text); }
+  .month-mode-btn.active{ background: var(--accent-soft); color: var(--accent); }
   #month-overlay-weekdays{
     display:grid;
     grid-template-columns: repeat(7, 1fr);
@@ -1224,6 +1244,12 @@
   .month-task-row.done .month-task-text{
     text-decoration: line-through;
     color: var(--text-faint);
+  }
+  .month-empty-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    color: var(--text-faint);
+    padding-top:2px;
   }
 
   #whiteboard-viewport{
@@ -1522,6 +1548,8 @@
     .month-day-cell{ min-height:70px; }
     .month-day-tasks{ font-size:8.5px; }
     .month-task-row{ font-size:8.5px; }
+    .month-mode-btn{ padding:4px 8px; font-size:9px; }
+    #monthOverlayTitle{ min-width:110px; font-size:12px; }
 
     /* Carrusel de fecha: se autoajusta al ancho disponible en vez de desbordar la pantalla */
     #carousel-wrap{
@@ -1765,6 +1793,10 @@
       <button id="monthOverlayPrev" class="timer-ctrl-btn" title="Mes anterior">‹</button>
       <div id="monthOverlayTitle">—</div>
       <button id="monthOverlayNext" class="timer-ctrl-btn" title="Mes siguiente">›</button>
+      <div id="month-overlay-modes">
+        <button class="month-mode-btn active" data-mode="tasks">Tareas</button>
+        <button class="month-mode-btn" data-mode="habits">Hábitos</button>
+      </div>
       <button id="monthOverlayClose" title="Cerrar">✕</button>
     </div>
     <div id="month-overlay-weekdays"></div>
@@ -3617,6 +3649,7 @@
 
   /* ============ VISTA MES (overlay con to-do de cada día) ============ */
   let monthOverlayDate = new Date();
+  let monthOverlayMode = "tasks";
   const dayCache = {};
 
   async function loadDayRaw(d){
@@ -3646,8 +3679,19 @@
     if(dk === dateKey(currentDate)){
       dayData = data;
       renderTodo();
+      renderHabits();
     }
   }
+
+  document.querySelectorAll(".month-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      if(mode === monthOverlayMode) return;
+      monthOverlayMode = mode;
+      document.querySelectorAll(".month-mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+      renderMonthOverlay();
+    });
+  });
 
   document.getElementById("monthViewBtn").addEventListener("click", () => {
     monthOverlayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -3717,6 +3761,51 @@
 
       loadDayRaw(d).then(data => {
         tasksBox.innerHTML = "";
+
+        if(monthOverlayMode === "habits"){
+          if(HABITS_LIST.length === 0){
+            const empty = document.createElement("div");
+            empty.className = "month-empty-note";
+            empty.textContent = "Sin hábitos";
+            tasksBox.appendChild(empty);
+            return;
+          }
+          if(!data.habits) data.habits = {};
+          if(!data.habitsAwarded) data.habitsAwarded = {};
+          HABITS_LIST.forEach(h => {
+            const row = document.createElement("div");
+            row.className = "month-task-row" + (data.habits[h.id] ? " done" : "");
+
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.checked = !!data.habits[h.id];
+            cb.addEventListener("change", () => {
+              const nowDone = cb.checked;
+              data.habits[h.id] = nowDone;
+              row.classList.toggle("done", nowDone);
+              if(nowDone){
+                if(!data.habitsAwarded[h.id]){
+                  data.habitsAwarded[h.id] = true;
+                  awardHabitXP(h.id, HABIT_XP);
+                }
+              } else if(data.habitsAwarded[h.id]){
+                data.habitsAwarded[h.id] = false;
+                awardHabitXP(h.id, -HABIT_XP);
+              }
+              saveDayRaw(d, data);
+            });
+
+            const text = document.createElement("div");
+            text.className = "month-task-text";
+            text.textContent = h.name;
+
+            row.appendChild(cb);
+            row.appendChild(text);
+            tasksBox.appendChild(row);
+          });
+          return;
+        }
+
         data.tasks.forEach((task, ti) => {
           const row = document.createElement("div");
           row.className = "month-task-row" + (task.done ? " done" : "");
