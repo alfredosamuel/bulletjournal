@@ -996,6 +996,117 @@
     text-align:center;
   }
 
+  #board-tabs{
+    position:absolute;
+    right:14px; bottom:14px;
+    display:flex; gap:4px;
+    background: rgba(26,29,38,0.92);
+    backdrop-filter: blur(6px);
+    border:1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    z-index: 21;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .board-tab{
+    border:none;
+    background:none;
+    color: var(--text-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: .4px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: all .15s ease;
+    white-space:nowrap;
+  }
+  .board-tab:hover{ color: var(--text); }
+  .board-tab.active{ background: var(--accent-soft); color: var(--accent); }
+
+  #timer-panel{
+    position:absolute;
+    left:14px; bottom:14px;
+    z-index: 21;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+  #timerPanelToggle{
+    width:34px; height:34px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background: rgba(26,29,38,0.92);
+    backdrop-filter: blur(6px);
+    color: var(--text-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    flex-shrink:0;
+  }
+  #timer-panel.open #timerPanelToggle{ color: var(--accent); }
+  #timerPanelToggle:hover{ color: var(--text); }
+  #timerPanelBody{
+    display:none;
+    gap:14px;
+    background: rgba(26,29,38,0.94);
+    backdrop-filter: blur(6px);
+    border:1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  #timer-panel.open #timerPanelBody{ display:flex; }
+  .timer-block{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:7px;
+    min-width: 92px;
+  }
+  .timer-block-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing:.6px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .timer-display{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 5px 8px;
+    min-width: 76px;
+    text-align:center;
+    user-select:none;
+  }
+  #timerDisplay{ cursor:pointer; }
+  #timerDisplay:hover{ border-color: var(--border); }
+  #timerDisplay.editing{
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+    cursor:text;
+    user-select:text;
+  }
+  .timer-controls{ display:flex; gap:6px; }
+  .timer-ctrl-btn{
+    width:26px; height:26px;
+    border-radius:50%;
+    border:1px solid var(--border-soft);
+    background: var(--panel-2);
+    color: var(--text-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px;
+  }
+  .timer-ctrl-btn:hover{ color: var(--text); }
+  .timer-ctrl-btn.playing{ color: var(--accent); border-color: var(--accent); }
+
   #whiteboard-viewport{
     position:absolute;
     inset:0;
@@ -1280,6 +1391,13 @@
     .board-el.text-el{ font-size: 16px; }
     #toolbar{ padding: 5px; gap:4px; }
     .tool-btn{ width:32px; height:32px; }
+    #board-tabs{ padding: 3px; }
+    .board-tab{ padding: 5px 8px; font-size: 9.5px; }
+    #timerPanelToggle{ width:30px; height:30px; font-size:13px; }
+    #timerPanelBody{ padding: 8px; gap: 10px; }
+    .timer-block{ min-width: 76px; gap: 5px; }
+    .timer-display{ font-size: 12.5px; min-width: 64px; padding: 4px 6px; }
+    .timer-ctrl-btn{ width:22px; height:22px; font-size:9.5px; }
 
     /* Carrusel de fecha: se autoajusta al ancho disponible en vez de desbordar la pantalla */
     #carousel-wrap{
@@ -1378,6 +1496,31 @@
     </section>
 
     <section id="board-col">
+      <div id="board-tabs">
+        <button class="board-tab active" data-board="week" title="Pizarra de esta semana">Semana</button>
+        <button class="board-tab" data-board="forever" title="Pizarra libre, siempre disponible">Pizarra libre</button>
+      </div>
+      <div id="timer-panel">
+        <div id="timerPanelBody">
+          <div class="timer-block">
+            <div class="timer-block-label">Cronómetro</div>
+            <div class="timer-display" id="stopwatchDisplay">00:00:00</div>
+            <div class="timer-controls">
+              <button class="timer-ctrl-btn" id="stopwatchPlayBtn" title="Iniciar">▶</button>
+              <button class="timer-ctrl-btn" id="stopwatchResetBtn" title="Reiniciar">⟲</button>
+            </div>
+          </div>
+          <div class="timer-block">
+            <div class="timer-block-label">Temporizador</div>
+            <div class="timer-display" id="timerDisplay" title="Doble click para editar">00:25:00</div>
+            <div class="timer-controls">
+              <button class="timer-ctrl-btn" id="timerPlayBtn" title="Iniciar">▶</button>
+              <button class="timer-ctrl-btn" id="timerResetBtn" title="Reiniciar">⟲</button>
+            </div>
+          </div>
+        </div>
+        <button id="timerPanelToggle" title="Cronómetro y temporizador">⏱</button>
+      </div>
       <div id="toolbar">
         <button class="tool-btn active" data-tool="select" title="Mover / seleccionar">✥</button>
         <div class="toolbar-sep"></div>
@@ -2558,21 +2701,58 @@
     });
   });
 
-  /* ============ WHITEBOARD (por semana) ============ */
+  /* ============ WHITEBOARD (por semana + pizarra libre "para siempre") ============ */
   const viewport = document.getElementById("whiteboard-viewport");
   const canvas = document.getElementById("whiteboard-canvas");
   const svg = document.getElementById("strokes-svg");
   const elLayer = document.getElementById("elements-layer");
 
+  let boardMode = "week"; // "week" | "forever"
+  let foreverBoard = defaultWhiteboard();
+
+  // Devuelve el objeto de pizarra activo según la pestaña seleccionada (semana o libre).
+  function getWB(){
+    return boardMode === "forever" ? foreverBoard : weekData.whiteboard;
+  }
+  function setWB(obj){
+    if(boardMode === "forever"){ foreverBoard = obj; } else { weekData.whiteboard = obj; }
+  }
+  function saveWB(){
+    if(boardMode === "forever"){ saveForeverBoard(); } else { saveWeek(); }
+  }
+  function saveForeverBoard(){
+    scheduleSave("bj:foreverBoard", JSON.stringify(foreverBoard));
+  }
+  async function loadForeverBoard(){
+    try{
+      const raw = await storeGet("bj:foreverBoard");
+      foreverBoard = raw ? JSON.parse(raw) : defaultWhiteboard();
+    }catch(e){ foreverBoard = defaultWhiteboard(); }
+  }
+
+  document.querySelectorAll(".board-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.board;
+      if(mode === boardMode) return;
+      boardMode = mode;
+      document.querySelectorAll(".board-tab").forEach(b => b.classList.toggle("active", b === btn));
+      clearSelection();
+      undoStack = [];
+      redoStack = [];
+      updateUndoRedoButtons();
+      renderWhiteboard();
+    });
+  });
+
   function applyTransform(){
-    const wb = weekData.whiteboard;
+    const wb = getWB();
     canvas.style.transform = "translate(" + wb.tx + "px," + wb.ty + "px) scale(" + wb.scale + ")";
     document.getElementById("zoomLabel").textContent = Math.round(wb.scale*100) + "%";
   }
 
   function pageToCanvas(pageX, pageY){
     const rect = viewport.getBoundingClientRect();
-    const wb = weekData.whiteboard;
+    const wb = getWB();
     return {
       x: (pageX - rect.left - wb.tx) / wb.scale,
       y: (pageY - rect.top - wb.ty) / wb.scale
@@ -2582,7 +2762,7 @@
   const SVG_NS = "http://www.w3.org/2000/svg";
 
   function snapshotWhiteboard(){
-    return JSON.stringify(weekData.whiteboard);
+    return JSON.stringify(getWB());
   }
 
   function pushUndo(preSnapshot){
@@ -2605,10 +2785,10 @@
     const current = snapshotWhiteboard();
     const prev = undoStack.pop();
     redoStack.push(current);
-    weekData.whiteboard = JSON.parse(prev);
+    setWB(JSON.parse(prev));
     clearSelection();
     renderWhiteboard();
-    saveWeek();
+    saveWB();
     updateUndoRedoButtons();
   }
 
@@ -2617,10 +2797,10 @@
     const current = snapshotWhiteboard();
     const next = redoStack.pop();
     undoStack.push(current);
-    weekData.whiteboard = JSON.parse(next);
+    setWB(JSON.parse(next));
     clearSelection();
     renderWhiteboard();
-    saveWeek();
+    saveWB();
     updateUndoRedoButtons();
   }
 
@@ -2628,14 +2808,14 @@
     applyTransform();
     renderStrokes();
     elLayer.innerHTML = "";
-    weekData.whiteboard.elements.forEach(el => renderElement(el));
+    getWB().elements.forEach(el => renderElement(el));
     updateSelectionVisuals();
   }
 
   function renderStrokes(){
     svg.innerHTML = "";
     strokeNodes = {};
-    weekData.whiteboard.strokes.forEach(s => {
+    getWB().strokes.forEach(s => {
       const d = pointsToPath(s.points);
 
       const hit = document.createElementNS(SVG_NS, "path");
@@ -2692,21 +2872,21 @@
           ev.stopPropagation();
           insertLineBreakAtCaret();
           el.content = editable.textContent;
-          saveWeek();
+          saveWB();
         }
       });
       editable.addEventListener("input", () => {
         el.content = editable.textContent;
-        saveWeek();
+        saveWB();
         void editable.offsetHeight;
       });
       editable.addEventListener("blur", () => {
         const emptied = !editable.textContent.trim();
         if(emptied){
-          weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
+          getWB().elements = getWB().elements.filter(e => e.id !== el.id);
           selected.delete(el.id);
           renderWhiteboard();
-          saveWeek();
+          saveWB();
         }
         if(preEditSnapshot !== null){
           const after = snapshotWhiteboard();
@@ -2735,7 +2915,7 @@
           el.xpAwarded = false;
           addXP(-XP_PER_TASK);
         }
-        saveWeek();
+        saveWB();
       });
       node.appendChild(cb);
 
@@ -2754,22 +2934,22 @@
           ev.stopPropagation();
           insertLineBreakAtCaret();
           el.content = editable.textContent;
-          saveWeek();
+          saveWB();
         }
       });
       editable.addEventListener("input", () => {
         el.content = editable.textContent;
-        saveWeek();
+        saveWB();
         void editable.offsetHeight;
       });
       editable.addEventListener("blur", () => {
         const emptied = !editable.textContent.trim();
         if(emptied){
           if(el.xpAwarded) addXP(-XP_PER_TASK);
-          weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
+          getWB().elements = getWB().elements.filter(e => e.id !== el.id);
           selected.delete(el.id);
           renderWhiteboard();
-          saveWeek();
+          saveWB();
         }
         if(preEditSnapshotT !== null){
           const after = snapshotWhiteboard();
@@ -2801,10 +2981,10 @@
       ev.stopPropagation();
       pushUndo();
       if(el.type === "ticket" && el.xpAwarded) addXP(-XP_PER_TASK);
-      weekData.whiteboard.elements = weekData.whiteboard.elements.filter(e => e.id !== el.id);
+      getWB().elements = getWB().elements.filter(e => e.id !== el.id);
       selected.delete(el.id);
       renderWhiteboard();
-      saveWeek();
+      saveWB();
     });
     node.appendChild(del);
 
@@ -2867,19 +3047,19 @@
 
   function startDragSelected(ev){
     if(selected.size === 0) return;
-    const wb = weekData.whiteboard;
+    const wb = getWB();
     const startPage = { x: ev.clientX, y: ev.clientY };
     const preDragSnapshot = snapshotWhiteboard();
 
     const elSnapshots = [];
     const strokeSnapshots = [];
     selected.forEach(id => {
-      const elObj = weekData.whiteboard.elements.find(e => e.id === id);
+      const elObj = getWB().elements.find(e => e.id === id);
       if(elObj){
         elSnapshots.push({ elObj, x: elObj.x, y: elObj.y, node: elLayer.querySelector('[data-id="'+id+'"]') });
         return;
       }
-      const strokeObj = weekData.whiteboard.strokes.find(s => s.id === id);
+      const strokeObj = getWB().strokes.find(s => s.id === id);
       if(strokeObj){
         strokeSnapshots.push({ strokeObj, points: strokeObj.points.map(p => ({x:p.x, y:p.y})) });
       }
@@ -2909,7 +3089,7 @@
     function onUp(){
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
-      if(moved){ pushUndo(preDragSnapshot); saveWeek(); }
+      if(moved){ pushUndo(preDragSnapshot); saveWB(); }
     }
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
@@ -2950,15 +3130,15 @@
   function addElement(type, x, y, content, extra){
     pushUndo();
     const el = Object.assign({ id: "el_"+Date.now()+"_"+Math.floor(Math.random()*1000), type, x, y, content }, extra || {});
-    weekData.whiteboard.elements.push(el);
+    getWB().elements.push(el);
     renderElement(el);
-    saveWeek();
+    saveWB();
     return el;
   }
 
   viewport.addEventListener("wheel", (e) => {
     e.preventDefault();
-    const wb = weekData.whiteboard;
+    const wb = getWB();
     const rect = viewport.getBoundingClientRect();
     const cursorX = e.clientX - rect.left;
     const cursorY = e.clientY - rect.top;
@@ -2972,7 +3152,7 @@
     wb.ty = cursorY - canvasPt.y * newScale;
     wb.scale = newScale;
     applyTransform();
-    saveWeek();
+    saveWB();
   }, { passive:false });
 
   let isPointerDown = false;
@@ -3027,7 +3207,7 @@
     } else {
       isPanning = true;
       viewport.classList.add("panning");
-      panStart = { x: e.clientX, y: e.clientY, tx: weekData.whiteboard.tx, ty: weekData.whiteboard.ty };
+      panStart = { x: e.clientX, y: e.clientY, tx: getWB().tx, ty: getWB().ty };
     }
   });
 
@@ -3059,8 +3239,8 @@
     } else if(isPanning && panStart){
       const dx = e.clientX - panStart.x;
       const dy = e.clientY - panStart.y;
-      weekData.whiteboard.tx = panStart.tx + dx;
-      weekData.whiteboard.ty = panStart.ty + dy;
+      getWB().tx = panStart.tx + dx;
+      getWB().ty = panStart.ty + dy;
       applyTransform();
     }
   });
@@ -3085,12 +3265,12 @@
 
     if(isDrawing && currentStrokePoints.length > 1){
       if(preStrokeSnapshot !== null) pushUndo(preStrokeSnapshot);
-      weekData.whiteboard.strokes.push({
+      getWB().strokes.push({
         id: "st_"+Date.now()+"_"+Math.floor(Math.random()*1000),
         color: penColor.startsWith("var(") ? getComputedColor(penColor) : penColor,
         points: currentStrokePoints.slice()
       });
-      saveWeek();
+      saveWB();
       if(liveSvgPath){ liveSvgPath.remove(); liveSvgPath = null; }
       renderWhiteboard();
     } else if(liveSvgPath){
@@ -3098,7 +3278,7 @@
     }
     isDrawing = false;
     isPointerDown = false;
-    if(isPanning) saveWeek();
+    if(isPanning) saveWB();
     isPanning = false;
     viewport.classList.remove("panning");
     currentStrokePoints = [];
@@ -3168,14 +3348,14 @@
     if(e.key.toLowerCase() === "g"){ setTool("ticket"); }
     if((e.key === "Delete" || e.key === "Backspace") && selected.size > 0){
       pushUndo();
-      weekData.whiteboard.elements.forEach(el => {
+      getWB().elements.forEach(el => {
         if(selected.has(el.id) && el.type === "ticket" && el.xpAwarded) addXP(-XP_PER_TASK);
       });
-      weekData.whiteboard.elements = weekData.whiteboard.elements.filter(el => !selected.has(el.id));
-      weekData.whiteboard.strokes = weekData.whiteboard.strokes.filter(s => !selected.has(s.id));
+      getWB().elements = getWB().elements.filter(el => !selected.has(el.id));
+      getWB().strokes = getWB().strokes.filter(s => !selected.has(s.id));
       clearSelection();
       renderWhiteboard();
-      saveWeek();
+      saveWB();
     }
   });
 
@@ -3654,6 +3834,7 @@
     flushSave("bj:week:"+weekKey(currentDate));
     flushSave("bj:xp");
     flushSave("bj:habits");
+    flushSave("bj:foreverBoard");
   });
 
   async function refresh(){
@@ -3895,9 +4076,202 @@
   initTickerStrip();
   setInterval(refreshPriceTicker, 60000);
 
+  /* ============ PANEL PLEGABLE: CRONÓMETRO Y TEMPORIZADOR ============ */
+  const timerPanel = document.getElementById("timer-panel");
+  const timerPanelToggle = document.getElementById("timerPanelToggle");
+  timerPanelToggle.addEventListener("click", () => {
+    timerPanel.classList.toggle("open");
+  });
+
+  function pad2(n){ return n < 10 ? "0"+n : ""+n; }
+  function formatHMS(totalSeconds){
+    totalSeconds = Math.max(0, Math.round(totalSeconds));
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+  }
+
+  // AudioContext compartido, creado en el primer gesto del usuario (click en play)
+  // para que el navegador permita reproducir el sonido de aviso más tarde.
+  let sharedAudioCtx = null;
+  function getAudioCtx(){
+    if(!sharedAudioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return null;
+      sharedAudioCtx = new Ctx();
+    }
+    if(sharedAudioCtx.state === "suspended") sharedAudioCtx.resume();
+    return sharedAudioCtx;
+  }
+  function playTimerSound(){
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    for(let i=0;i<4;i++){
+      const t0 = now + i*0.32;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.35, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.3);
+    }
+  }
+
+  /* ---- Cronómetro (cuenta hacia arriba) ---- */
+  const stopwatchDisplay = document.getElementById("stopwatchDisplay");
+  const stopwatchPlayBtn = document.getElementById("stopwatchPlayBtn");
+  const stopwatchResetBtn = document.getElementById("stopwatchResetBtn");
+  let stopwatchElapsed = 0;
+  let stopwatchRunning = false;
+  let stopwatchStartTs = null;
+  let stopwatchInterval = null;
+
+  function renderStopwatch(){
+    stopwatchDisplay.textContent = formatHMS(stopwatchElapsed);
+  }
+  function startStopwatch(){
+    getAudioCtx();
+    stopwatchRunning = true;
+    stopwatchPlayBtn.textContent = "⏸";
+    stopwatchPlayBtn.title = "Pausar";
+    stopwatchPlayBtn.classList.add("playing");
+    stopwatchStartTs = Date.now() - stopwatchElapsed*1000;
+    stopwatchInterval = setInterval(() => {
+      stopwatchElapsed = (Date.now() - stopwatchStartTs) / 1000;
+      renderStopwatch();
+    }, 250);
+  }
+  function pauseStopwatch(){
+    stopwatchRunning = false;
+    stopwatchPlayBtn.textContent = "▶";
+    stopwatchPlayBtn.title = "Iniciar";
+    stopwatchPlayBtn.classList.remove("playing");
+    if(stopwatchInterval){ clearInterval(stopwatchInterval); stopwatchInterval = null; }
+  }
+  stopwatchPlayBtn.addEventListener("click", () => {
+    if(stopwatchRunning) pauseStopwatch(); else startStopwatch();
+  });
+  stopwatchResetBtn.addEventListener("click", () => {
+    pauseStopwatch();
+    stopwatchElapsed = 0;
+    renderStopwatch();
+  });
+  renderStopwatch();
+
+  /* ---- Temporizador (cuenta regresiva, editable con doble click) ---- */
+  const timerDisplay = document.getElementById("timerDisplay");
+  const timerPlayBtn = document.getElementById("timerPlayBtn");
+  const timerResetBtn = document.getElementById("timerResetBtn");
+  let timerDuration = 25*60;
+  let timerRemaining = timerDuration;
+  let timerRunning = false;
+  let timerEndTs = null;
+  let timerInterval = null;
+
+  function renderTimer(){
+    timerDisplay.textContent = formatHMS(timerRemaining);
+  }
+  function startTimer(){
+    if(timerRemaining <= 0) return;
+    getAudioCtx();
+    timerRunning = true;
+    timerPlayBtn.textContent = "⏸";
+    timerPlayBtn.title = "Pausar";
+    timerPlayBtn.classList.add("playing");
+    timerEndTs = Date.now() + timerRemaining*1000;
+    timerInterval = setInterval(() => {
+      const remain = Math.round((timerEndTs - Date.now()) / 1000);
+      if(remain <= 0){
+        timerRemaining = 0;
+        renderTimer();
+        pauseTimer();
+        playTimerSound();
+        return;
+      }
+      timerRemaining = remain;
+      renderTimer();
+    }, 250);
+  }
+  function pauseTimer(){
+    timerRunning = false;
+    timerPlayBtn.textContent = "▶";
+    timerPlayBtn.title = "Iniciar";
+    timerPlayBtn.classList.remove("playing");
+    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+  }
+  timerPlayBtn.addEventListener("click", () => {
+    if(timerRunning) pauseTimer(); else startTimer();
+  });
+  timerResetBtn.addEventListener("click", () => {
+    pauseTimer();
+    timerRemaining = timerDuration;
+    renderTimer();
+  });
+
+  function beginEditTimer(){
+    pauseTimer();
+    timerDisplay.contentEditable = "true";
+    timerDisplay.classList.add("editing");
+    timerDisplay.focus();
+    const range = document.createRange();
+    range.selectNodeContents(timerDisplay);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  function applyTimerInput(){
+    const raw = timerDisplay.textContent.trim();
+    timerDisplay.contentEditable = "false";
+    timerDisplay.classList.remove("editing");
+    let totalSeconds = null;
+    if(/^\d+$/.test(raw)){
+      // Número simple → minutos (25 => 00:25:00, 90 => 01:30:00)
+      totalSeconds = parseInt(raw, 10) * 60;
+    } else if(/^\d{1,2}:\d{1,2}(:\d{1,2})?$/.test(raw)){
+      const parts = raw.split(":").map(n => parseInt(n, 10));
+      if(parts.length === 2){
+        totalSeconds = parts[0]*60 + parts[1];
+      } else {
+        totalSeconds = parts[0]*3600 + parts[1]*60 + parts[2];
+      }
+    }
+    if(totalSeconds === null || isNaN(totalSeconds) || totalSeconds <= 0){
+      renderTimer();
+      return;
+    }
+    timerDuration = totalSeconds;
+    timerRemaining = totalSeconds;
+    renderTimer();
+  }
+  timerDisplay.addEventListener("dblclick", beginEditTimer);
+  timerDisplay.addEventListener("keydown", (e) => {
+    if(timerDisplay.contentEditable !== "true") return;
+    if(e.key === "Enter"){
+      e.preventDefault();
+      applyTimerInput();
+    } else if(e.key === "Escape"){
+      e.preventDefault();
+      timerDisplay.contentEditable = "false";
+      timerDisplay.classList.remove("editing");
+      renderTimer();
+    }
+  });
+  timerDisplay.addEventListener("blur", () => {
+    if(timerDisplay.contentEditable === "true") applyTimerInput();
+  });
+  renderTimer();
+
   async function init(){
     await loadHabits();
     await loadLinks();
+    await loadForeverBoard();
     await initXP();
     await refresh();
     renderLinks();
