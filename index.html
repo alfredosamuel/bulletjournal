@@ -623,12 +623,6 @@
       linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
     background-size: 28px 28px;
   }
-  #board-col.forever-mode{
-    background: #34394a;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-  }
 
   #goals-stack{
     position:absolute;
@@ -1056,6 +1050,7 @@
   #timerPanelToggle:hover{ color: var(--text); }
   #timerPanelBody{
     display:none;
+    position:relative;
     gap:14px;
     background: rgba(26,29,38,0.94);
     backdrop-filter: blur(6px);
@@ -1065,6 +1060,32 @@
     box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   }
   #timer-panel.open #timerPanelBody{ display:flex; }
+  #timer-panel.popped-out #timerPanelBody{ display:none !important; }
+  #timerPopoutBtn{
+    position:absolute;
+    top:5px; right:6px;
+    width:19px; height:19px;
+    border-radius:5px;
+    border:1px solid var(--border-soft);
+    background: var(--panel-2);
+    color: var(--text-dim);
+    cursor:pointer;
+    font-size:10px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #timerPopoutBtn:hover{ color: var(--text); }
+  #timerPanelPlaceholder{
+    display:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-dim);
+    background: rgba(26,29,38,0.94);
+    backdrop-filter: blur(6px);
+    border:1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 14px;
+  }
+  #timer-panel.open.popped-out #timerPanelPlaceholder{ display:block; }
   .timer-block{
     display:flex;
     flex-direction:column;
@@ -1655,6 +1676,7 @@
       </div>
       <div id="timer-panel">
         <div id="timerPanelBody">
+          <button id="timerPopoutBtn" title="Abrir en ventana flotante (siempre visible)">⧉</button>
           <div class="timer-block">
             <div class="timer-block-label">Cronómetro</div>
             <div class="timer-display" id="stopwatchDisplay">00:00:00</div>
@@ -1672,6 +1694,7 @@
             </div>
           </div>
         </div>
+        <div id="timerPanelPlaceholder">Flotando en otra ventana ⧉</div>
         <button id="timerPanelToggle" title="Cronómetro y temporizador">⏱</button>
       </div>
       <div id="toolbar">
@@ -2906,7 +2929,6 @@
       if(mode === boardMode) return;
       boardMode = mode;
       document.querySelectorAll(".board-tab[data-board]").forEach(b => b.classList.toggle("active", b === btn));
-      document.getElementById("board-col").classList.toggle("forever-mode", boardMode === "forever");
       clearSelection();
       undoStack = [];
       redoStack = [];
@@ -4448,6 +4470,60 @@
   const timerPanelToggle = document.getElementById("timerPanelToggle");
   timerPanelToggle.addEventListener("click", () => {
     timerPanel.classList.toggle("open");
+  });
+
+  /* ---- Ventana flotante (Picture-in-Picture, siempre "on top") ---- */
+  let pipWindow = null;
+  const timerPopoutBtn = document.getElementById("timerPopoutBtn");
+  const timerPanelBody = document.getElementById("timerPanelBody");
+  timerPopoutBtn.addEventListener("click", async () => {
+    if(pipWindow){ pipWindow.close(); return; }
+    if(!("documentPictureInPicture" in window)){
+      alert("Tu navegador no soporta ventanas flotantes \"siempre visibles\" (Picture-in-Picture). Probá con una versión reciente de Chrome o Edge.");
+      return;
+    }
+    try{
+      pipWindow = await window.documentPictureInPicture.requestWindow({ width: 250, height: 190 });
+    }catch(e){ pipWindow = null; return; }
+
+    // Copiamos los estilos actuales para que la ventana flotante se vea igual
+    [...document.styleSheets].forEach(sheet => {
+      try{
+        const css = [...sheet.cssRules].map(r => r.cssText).join("\n");
+        const style = pipWindow.document.createElement("style");
+        style.textContent = css;
+        pipWindow.document.head.appendChild(style);
+      }catch(e){
+        if(sheet.href){
+          const link = pipWindow.document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = sheet.href;
+          pipWindow.document.head.appendChild(link);
+        }
+      }
+    });
+    pipWindow.document.body.style.margin = "0";
+    pipWindow.document.body.style.background = "var(--bg)";
+    pipWindow.document.body.style.display = "flex";
+    pipWindow.document.body.style.alignItems = "center";
+    pipWindow.document.body.style.justifyContent = "center";
+    pipWindow.document.body.style.minHeight = "100vh";
+    pipWindow.document.body.style.boxSizing = "border-box";
+
+    timerPanelBody.style.display = "flex";
+    pipWindow.document.body.appendChild(timerPanelBody);
+    timerPopoutBtn.title = "Volver a la ventana principal";
+    timerPopoutBtn.textContent = "⤢";
+    timerPanel.classList.add("popped-out");
+
+    pipWindow.addEventListener("pagehide", () => {
+      timerPanelBody.style.display = "";
+      document.getElementById("timer-panel").insertBefore(timerPanelBody, document.getElementById("timerPanelPlaceholder"));
+      timerPanel.classList.remove("popped-out");
+      timerPopoutBtn.title = "Abrir en ventana flotante (siempre visible)";
+      timerPopoutBtn.textContent = "⧉";
+      pipWindow = null;
+    }, { once:true });
   });
 
   function pad2(n){ return n < 10 ? "0"+n : ""+n; }
